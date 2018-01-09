@@ -633,9 +633,9 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     
 }
 
-//EMPTY THE ALLOCATED MEMORY
+// EMPTY THE ALLOCATED MEMORY
 if(alg_param.c_density_flag == 1){
-  delete c_density; //delete the target distribution object (calls the destructor of the class)
+  delete c_density; // delete the target distribution object (calls the destructor of the class)
 }
 
 vector< vector<double> >().swap(tr_weights);
@@ -649,7 +649,7 @@ NumericVector r_p(par); //return value of the weights p
 for(i=0;i<par; i++){r_p[i] = alg_param.p[i];}  
   
 
-//RETURN THE ESTIMATED OPTIMAL SAMPLING WEIGHTS AND THE PSEUDO-SPECTRAL GAP
+// RETURN THE ESTIMATED OPTIMAL SAMPLING WEIGHTS AND THE PSEUDO-SPECTRAL GAP
 
 
 if(alg_param.adapt_weights==1||alg_param.estimate_spectral_gap==1)
@@ -660,6 +660,25 @@ if(alg_param.adapt_weights==1||alg_param.estimate_spectral_gap==1)
     return List::create(Named("weights") =r_p);
   }
  
+}
+
+
+// END OF AMCMC FUNCTION
+
+//****************************************************************************//
+
+// Additional functions to change `working_direcotry`
+
+// [[Rcpp::export]]
+void set_working_directory(String directory)
+{
+    working_directory = string(directory);
+}
+
+// [[Rcpp::export]]
+String get_working_directory()
+{
+    return String(working_directory);
 }
 
 // You include R code blocks in C++ files processed with sourceCpp

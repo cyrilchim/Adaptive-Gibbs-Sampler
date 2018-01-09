@@ -84,24 +84,6 @@ public:
   virtual ~distribution_class(){};
 };
 
-// [[Rcpp::export]]
-void set_working_directory(String directory)
-{
-  working_directory = string(directory);
-}
-
-// [[Rcpp::export]]
-String get_working_directory()
-{
-  return String(working_directory);
-}
-
-// [[Rcpp::export]]
-void print_working_directory()
-{
- Rcout<<working_directory<<"\n";
-}
-
 /*****************************************************************************************/
 
 
