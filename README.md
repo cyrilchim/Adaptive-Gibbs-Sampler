@@ -56,7 +56,7 @@ set_working_directory("Users/Admin/AdaptiveGibbs/simulation_results/")
 
 Notice, that you need to indicate the precise path to the directory, NOT "~/AdaptiveGibbs/simulation_results". Also, notice "/" at the end of the pass.
 
-2. Now you can use AMCMC(...) and related functions. Please refer to AMCMCinfo.txt, appendix_AMCMC.txt,  and tutorial_examples.R to learn about AMCMC(...) function. 
+2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../blob/master/AMCMC_info.md), appendix_AMCMC.txt,  and tutorial_examples.R to learn about AMCMC(...) function. 
 
 3. Refer to how_to_write_density.txt for details on writing your own target density
 
