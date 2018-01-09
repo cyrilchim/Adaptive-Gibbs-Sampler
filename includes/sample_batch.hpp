@@ -252,7 +252,7 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
                     prop.subvec(bl_start, bl_end)  = theta->subvec(bl_start, bl_end) ;
                 }
                 //change value of the current_location parameter
-                current_location.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) = theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1);
+                current_location.subvec(bl_start, bl_end) = theta->subvec(bl_start, bl_end);
                 
             }
         }
