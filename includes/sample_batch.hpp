@@ -153,7 +153,8 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
     int i, proposal_update;
     proposal_update = ceil( double(alg_param->batch_length) / double(alg_param->frequency_ratio) );
     
-    double  gp, A, u;
+    double  gp, acceptance_ratio, u;
+    double target_acceptance;
     vec prop = *theta;
     vec accum(par);
     uvec updates_number(par);
@@ -175,6 +176,8 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
             gp = multinomial(alg_param->p); // choose a block using the sampling weights
             // gp = gsl_ran_discrete(r, g);
             // gp  = i;
+            bl_start = alg_param->blocking_structure[int(gp)];
+            bl_end = alg_param->blocking_structure[int(gp)+1]-1;
             
             if((alg_param->gibbs_step[int(gp)]==0&&alg_param->ignore_gibbs_sampling==1) ||
                (alg_param->gibbs_sampling==0&&alg_param->ignore_gibbs_sampling==0))
@@ -182,9 +185,6 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
                 //Metropolis adaptation if chosen
                 
                 //generate a proposal
-                bl_start = alg_param->blocking_structure[int(gp)];
-                bl_end = alg_param->blocking_structure[int(gp)+1]-1;
-                
                 u = runif(1)[0];
                 if(u < alg_param->stabilizing_weight)
                   {
@@ -198,34 +198,28 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
                     + 2.38/sqrt(dim)  * vec( rnorm(bl_end - bl_start + 1) ));
                   }
                 
-                
                 //compute logarithm of acceptance ratio
                 if(alg_param->logdensity==0)
                 {
-                    A = acceptance_density(prop, *theta, gp, c_density, alg_param);
+                  acceptance_ratio = acceptance_density(prop, *theta, gp, c_density, alg_param);
                 }
                 else
                 {
-                    A = acceptance_logdensity(prop, *theta, gp, c_density, alg_param);
+                  acceptance_ratio = acceptance_logdensity(prop, *theta, gp, c_density, alg_param);
                 }
                 
-                if(1<A) {A = 1;}
+                if(1 < acceptance_ratio) {acceptance_ratio = 1;}
                 
                 //accumulated acceptance ratio as in the AIRMCMC algorithm
                 if(alg_param->adapt_proposals==1)
                 {
-                    accum(gp) = accum(gp) + A;
+                    accum(gp) = accum(gp) + acceptance_ratio;
                     updates_number(gp) = updates_number(gp) + 1;
                 }
                 
-                
                 //accept-reject step
-                bl_start = alg_param->blocking_structure[int(gp)];
-                bl_end = alg_param->blocking_structure[int(gp)+1]-1;
-                
                 u =  runif(1)[0];
-                
-                if(u<=A)
+                if(u<=acceptance_ratio)
                 {
                     //accept proposal
                     theta->subvec(bl_start, bl_end)  = prop.subvec(bl_start, bl_end) ;
@@ -245,38 +239,41 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
                 }
                 
             }
-            
-            
+
             if(alg_param->gibbs_step[int(gp)]==1)
             {
                 //Gibbs adaptation if chosen
-                theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) = c_density->sample_full_cond(*theta, gp);
+                theta->subvec(bl_start, bl_end) = c_density->sample_full_cond(*theta, gp);
                 alg_param->reset_log_density = 1;
                 
                 //update the proposal vector for the Metropolis step
                 if(alg_param->gibbs_sampling==0)
                 {
-                    prop.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1)  = theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) ;
+                    prop.subvec(bl_start, bl_end)  = theta->subvec(bl_start, bl_end) ;
                 }
-                
                 //change value of the current_location parameter
                 current_location.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) = theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1);
                 
             }
         }
-        
-        
-        
+
         //adapt proposal variances (scales)
         if(alg_param->adapt_proposals==1 && alg_param->burn_in==0 && l % proposal_update == 0) {
-            for(int j=0;j<par;j++){
-                if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) == 1 && updates_number(j)>0){
-                    (*scale)(j) = (*scale)(j)*exp( pow(*start+l,-0.7/(1+alg_param->beta) )  * (accum(j)/updates_number(j)-0.44));
-                }
-                else if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) > 1 &&updates_number(j)>0){
-                    (*scale)(j) = (*scale)(j)*exp( pow(*start+l,-0.7/(1+alg_param->beta) )  * ( accum(j)/updates_number(j)-0.234 )  );
-                }
-            }
+            for(int j=0;j<par;j++)
+              {
+                if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) == 1 &&
+                   updates_number(j)>0)
+                  {
+                    target_acceptance = 0.44;
+                  }
+                else if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) > 1 &&
+                        updates_number(j)>0)
+                  {
+                    target_acceptance = 0.234;
+                  }
+                (*scale)(j) = ((*scale)(j) * exp(pow(*start + l, -0.7 / (1 + alg_param->beta))  *
+                  (accum(j) / updates_number(j) - target_acceptance)));
+              }
             
             accum.zeros(); updates_number.zeros();
         }
@@ -286,7 +283,8 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
         if(alg_param->burn_in==0){*start = *start + 1;}
         
         //record sampled point
-        if((alg_param->adapt_proposals==1 || alg_param->adapt_weights==1 || alg_param->estimate_spectral_gap==1)&&(alg_param->burn_in==0))
+        if((alg_param->adapt_proposals==1 || alg_param->adapt_weights==1 ||
+           alg_param->estimate_spectral_gap==1)&&(alg_param->burn_in==0))
         {
             for(i=0;i<dim;i++) 
             {
