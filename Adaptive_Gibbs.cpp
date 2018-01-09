@@ -19,19 +19,14 @@
 // #include <gsl/gsl_rng.h>
 // #include <gsl/gsl_randist.h>
 
-
 using namespace tbb; //support for parallel computing
 using namespace Rcpp;
 using namespace arma;
 using namespace std;
 
-
 // gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
 
 distribution_class* c_density;
-
-
-
 
 //parallel sampling in a manner described n ARSG paper
 void parallel_step(mat *S, vec* mu, int* start_old, int* start_new, vector<vector<double> >* tr_aux_tmp,  mat* Q, mat* L_1_tmp, field<mat>* S_cond_tmp, vec *scale_tmp, vec* dir, vec* z, vec* w, vec* p, double* inv_sp_gap, vector<double> *inv_sp_gap_trace, vector<vector<double> > *tr_proposals, param *alg_param_tmp, vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned int* count, vector<vector<double> > *tr, vector<vector<double> > *tr_aux, int *start, param *alg_param)
@@ -48,7 +43,6 @@ void parallel_step(mat *S, vec* mu, int* start_old, int* start_new, vector<vecto
   g.wait();
   
 }
-
 
 /********************************************************************************************************************************************/
 
@@ -69,10 +63,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
 {
   
   Rcout<<"Adaptive MCMC v0.1\n"<<endl;
-  
-  
 
-  
   //allow parallelisation for C++ densities only
   if(parallel_computation == 1 && c_density_flag == 0)
   {
@@ -100,8 +91,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   burn_in = floor(frac_burn_in/100. * N);
   
   dim = dims;
-  
-  
+
   //number of sampled points
   int start = 0, start_old = 0, start_new = 0;
 
@@ -111,9 +101,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   
  
   param alg_param;// algorithm parameters
-  
-  
-  
+
  //check if R_density properly passed to the function
   if(c_density_flag==0&&R_density==R_NilValue)
     {
@@ -126,10 +114,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       Rcout<<"this vesion does not support full conditionals for R_density  \n";
       return List::create(Named("error") = 1);
     }
-  
-  
-  
-  
+
   //SET UP blocking_structure VARIABLE
   
   NumericVector blocking_structure_tmp = NULL;
@@ -149,9 +134,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       Rcout<<"error: number of blocks does not match blocking structure\n";
       return List::create(Named("error") = 1);
     }
-  
-  
- 
+
   if(NumericVector::is_na(blocking[0]))
   {
     //set up number of blocks
@@ -210,19 +193,14 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     for(i=0;i<par;i++)
       alg_param.gibbs_step(i) = (unsigned int)(gibbs_step(i));
   }
-  
-  
-  
-  
+
   //SET UP lowerb, m, am
   lowerb = 1. / (par * par);//lower bound
   m_iter = sqrt(par) * 50;
   am = log(m_iter) / (m_iter);
-  
-  
+
   //SET UP SAMPLING WEIGHTS
   vec p(par);
-  
 
   if(!(NumericVector::is_na(start_weights[0]))&&start_weights.size()!=par)
     {
@@ -300,16 +278,11 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     field<mat> S_cond; //covariance matrices of the proposals in Metropolis step of the ARSGS
     S_cond.set_size(par);
     
-    
-    
-    
-    vec dir(par); //supergradient direction d^i from the ARSGS 
-    dir.zeros();
+    vec grad_dir(par); //supergradient direction d^i from the ARSGS 
+    grad_dir.zeros();
     
     vec z = vec(rnorm(dim+1)); //guess of the directional derivative
-    
-   
-    
+
     vector<vector<double> > tr, tr_aux, tr_aux_tmp; 
     // tr - trace of the chain; tr_aux - auxiliary vectro, part of trace used to re-estimate
     // the covariance matrix; tr_aux_tmp - copy of tr_aux
@@ -333,8 +306,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     vector<double> inv_sp_gap_trace; //trace of the estimated pseudo-spectral gap
     
     double inv_sp_gap = -1; //estimated pseudo-spectral gap
-  
-    
+
     //SET UP STARTING LOCATION
     if(NumericVector::is_na(start_location[0]))
       {
@@ -351,8 +323,6 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     
     current_location.set_size(dim);
     current_location = theta;
-    
-    
 
     //************************************ 
     
@@ -370,9 +340,6 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       }
     }
 
-   
-  
-    
     alg_param.adapt_weights = adapt_weights;
     alg_param.adapt_proposals = adapt_proposals;
     if(c_density_flag==0) alg_param.R_density = R_density;
@@ -388,10 +355,8 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     alg_param.perturb_covariance = perturb_covariance;
     alg_param.stabilizing_weight = stabilizing_weight;
   
-    
     //set up current density value
 
-    
     if(alg_param.c_density_flag==0)
     {
       //if(alg_param.full_cond==0){
@@ -410,7 +375,6 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
         
     }
     
-
     //set up S_cond
     for(i=0; i<par; i++){
       (S_cond)(i) = inv(L_1.submat(alg_param.blocking_structure[i], alg_param.blocking_structure[i],
@@ -430,16 +394,9 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     
     //set the estimated covariance matrix to zero
     S.zeros();
-
     
-
-       
 //************************************************************************************
-    
 
-    
-
-    
     //BURN-IN
     Rcout<<"Burning..."<<endl;
     
@@ -454,11 +411,8 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   
   alg_param.save = save; //write to the file
   alg_param.burn_in = 0; //disable burn_in
-  alg_param.batch_length = max(min(int(batch_length), N), 1);
+  alg_param.batch_length = max(min(int(batch_length), N), 1);\
   
-  
-  
-
   mat L_1_tmp(dim, dim);//copy of the matrix L from the algorithm
   field<mat> S_cond_tmp; //copy of S_cond
   S_cond_tmp = S_cond;
@@ -491,10 +445,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
 
     }
 }
-  
-  
 
-  
   L_1_tmp = L_1;
   scale_tmp = scale;
   alg_param_tmp = alg_param;
@@ -504,11 +455,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   //check that the number of samples will not exceed N
   alg_param.batch_length = min(alg_param.batch_length, N - start);
   
-
-  
-  
   //RUN THE ADAPTIVE MCMC
-  
   
   while(start+alg_param.batch_length<=N && alg_param.batch_length>0)
 {
@@ -524,7 +471,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       {
         //step of the ARSGS. Adaptation is performed in parallel to sampling
         parallel_step(&S, &mu, &start_old, &start_new, &tr_aux_tmp,  &Q,
-                      &L_1_tmp, &S_cond_tmp, &scale_tmp, &dir, &z, &w, &p, &inv_sp_gap,
+                      &L_1_tmp, &S_cond_tmp, &scale_tmp, &grad_dir, &z, &w, &p, &inv_sp_gap,
                       &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp, &theta,  &scale, &L_1,
                       &S_cond, &count, &tr, &tr_aux, &start, &alg_param);
       }
@@ -533,15 +480,13 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
         //step of the ARSGS
           perturb = vec(rnorm(dim+1)); //perturbation from Step 3.1.1 of the ARSGS
           adaptive_step(&perturb, &S, &mu, &start_old, &start_new, &tr_aux_tmp, 
-                        &Q, &L_1_tmp, &S_cond_tmp, &scale_tmp, &dir, &z, &w, &p,
+                        &Q, &L_1_tmp, &S_cond_tmp, &scale_tmp, &grad_dir, &z, &w, &p,
                         &inv_sp_gap, &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp);
 
           sample_batch(&theta,  &scale, &L_1, &S_cond, &count, &tr, &tr_aux, &start,
                        c_density, &alg_param);
         }
-    
 
-    
     //display progress bar
     if(display_progress == 1)
     {
@@ -607,18 +552,9 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
    
 }
 
-Rcout<<"\n";
 // END OF THE ADAPTIVE MCMC
   
-
-  
-
-
-
-
 //SAVE THE OUTPUT TO working_directory 
-
-
 
  if(alg_param.save==1)
 {
@@ -650,9 +586,7 @@ Rcout<<"\n";
     
   //write the estimated covariance to a file 
   S.save(working_directory+"estimated_covariance.csv", csv_ascii);  
-    
-    
-    
+
   //write weights trace to a file
   trace.open(working_directory+"weights"+".txt");
   if(!trace.is_open())
@@ -699,8 +633,6 @@ Rcout<<"\n";
     
 }
 
-
-
 //EMPTY THE ALLOCATED MEMORY
 if(alg_param.c_density_flag == 1){
   delete c_density; //delete the target distribution object (calls the destructor of the class)
@@ -730,16 +662,10 @@ if(alg_param.adapt_weights==1||alg_param.estimate_spectral_gap==1)
  
 }
 
-
-
 // You include R code blocks in C++ files processed with sourceCpp
 // (useful for testing and development). The R code will be automatically 
 // run after the compilation.
 //
-
-
-
-
 
 /*** R
 set.seed(1)
