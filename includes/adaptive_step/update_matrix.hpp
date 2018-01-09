@@ -4,7 +4,7 @@
 
 
 #include <RcppArmadillo.h>
-#include "Adaptive_Gibbs.hpp"
+#include "includes/Adaptive_Gibbs.hpp"
 
 using namespace Rcpp;
 using namespace arma;

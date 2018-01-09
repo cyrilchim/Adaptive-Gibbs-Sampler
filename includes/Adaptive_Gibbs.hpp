@@ -15,7 +15,8 @@ using namespace std;
 // GLOBAL VARIABLES
 
 int dim; // dimensionality of the target distribution 
-int par; // number of parameters/blocks to update by the Gibbs/MwG algorithms. If no blocking is used, par = d
+int par; // number of parameters/blocks to update by the Gibbs/MwG algorithms.
+         // If no blocking is used, par = d
 int burn_in; // number of burn-in samples
 double lowerb;// lower bound \epsilon from the ARSG algorithm. By defualt it is set to be 0.1/par^2
 double am; // sequence a_m from the ARSG algorithm
@@ -39,7 +40,8 @@ typedef Rcpp::Nullable<Rcpp::Function> nullable_func;
 
 // variable bearing information about algorithm aprameters
 struct param{
-    param() : save(0), burn_in(1), logdensity(0), full_cond(0), gibbs_sampling(0), estimate_spectral_gap(1), beta(0), frequency_ratio(10) {}
+    param() : save(0), burn_in(1), logdensity(0), full_cond(0), gibbs_sampling(0),
+              estimate_spectral_gap(1), beta(0), frequency_ratio(10) {}
     double *p; //probability weigths for the RSGS algorithm
     bool adapt_proposals;//enable/disable adaptation of proposal varianes in the Metropolis part of the algorithm
     bool adapt_weights;//enable/disable adaptation of sampling weights
@@ -66,15 +68,6 @@ struct param{
     
     void print_param ();//print values of a param variable. Should be used for developing/debugging purposes only
 };
-
-
-void param::print_param ()
-{
-    Rcout<<"adapt_weights: "<<adapt_weights<<"\n adapt_proposals: "<<adapt_proposals<<"\n c_density_flag: "<<c_density_flag<<"\n save: "<<save<<"\n burn_in: "<<burn_in<<"\n batch_length: "<<batch_length<<"\n";
-    for(int i = 0; i<par; i++) Rcout<<"p["<<i<<"]: "<<p[i]<<" ;";
-    Rcout<<" gibbs_step: "<<gibbs_step<<"\n blocks: "<<blocking_structure<<"\n";
-}
-
 
 
 

@@ -5,6 +5,9 @@
 
 #include <RcppArmadillo.h>
 #include "Adaptive_Gibbs.hpp"
+#include "adaptive_step/update_matrix.hpp"
+#include "adaptive_step/grad_direction.hpp"
+#include "adaptive_step/update_weights.hpp"
 
 using namespace Rcpp;
 using namespace arma;
@@ -22,7 +25,11 @@ using namespace std;
 // inv_sp_gap, inv_sp_gap_trace - estimated spectral gap and its trace
 // tr_proposals - trace of the scale parameters of Metropolis part of the algorithm
 
-void adaptive_step(vec *perturb, mat *S, vec* mu, int* start_old, int* start_new, vector<vector<double> >* tr_aux,  mat* Q, mat* L_1, field<mat>* S_cond, vec* scale, vec* dir, vec* z, vec* w, vec* p, double* inv_sp_gap, vector<double> *inv_sp_gap_trace, vector<vector<double> > *tr_proposals, param *alg_param)
+void adaptive_step(vec *perturb, mat *S, vec* mu, int* start_old, int* start_new,
+                   vector<vector<double> >* tr_aux,  mat* Q, mat* L_1, field<mat>* S_cond,
+                   vec* scale, vec* dir, vec* z, vec* w, vec* p, double* inv_sp_gap,
+                   vector<double> *inv_sp_gap_trace, vector<vector<double> > *tr_proposals,
+                   param *alg_param)
 {
     
     double w_array[par+1]; //array version of the weigths w
@@ -33,7 +40,8 @@ void adaptive_step(vec *perturb, mat *S, vec* mu, int* start_old, int* start_new
     
     
     //COVARIANCE MATRIX REESTIMATION
-    if(alg_param->adapt_weights==1 || alg_param->estimate_spectral_gap==1 || alg_param->adapt_proposals==1)
+    if(alg_param->adapt_weights==1 || alg_param->estimate_spectral_gap==1 ||
+       alg_param->adapt_proposals==1)
     {
         j = *start_old + 1;
         while(j <= *start_new)
@@ -45,17 +53,19 @@ void adaptive_step(vec *perturb, mat *S, vec* mu, int* start_old, int* start_new
             }
             
             
-            if((alg_param->adapt_weights==1||alg_param->estimate_spectral_gap==1||alg_param->adapt_proposals==1)&&(alg_param->burn_in==0))
+            if((alg_param->adapt_weights==1||alg_param->estimate_spectral_gap==1||
+               alg_param->adapt_proposals==1) && (alg_param->burn_in==0))
             {
                 //update the estimated covariance matrix
                 temp_mu = 1.0 / (j + 1)*(j * (*mu) + theta);
-                *S = (j - 1.0) / ( j )*(*S) + (1.0 / (j)*(theta))*(theta).t() + (*mu)*((*mu).t()) - ((j  + 1.0) / (j)*temp_mu)*temp_mu.t();
+                *S = ((j - 1.0) / ( j )*(*S) + (1.0 / (j)*(theta))*(theta).t() + (*mu)*((*mu).t())
+                      - ((j  + 1.0) / (j)*temp_mu)*temp_mu.t());
                 *mu = temp_mu;
             }
             j = j + 1;
         }
         
-        update_matrix(*S, Q, L_1, S_cond, alg_param);//Step 2 of the ARSGS
+        update_matrix(*S, Q, L_1, S_cond, alg_param); //Step 2 of the ARSGS
         
     }
     
@@ -73,7 +83,10 @@ void adaptive_step(vec *perturb, mat *S, vec* mu, int* start_old, int* start_new
         
         
         *dir = grad_direction(perturb, z, S, L_1, w_array, inv_sp_gap, alg_param);
-        if (alg_param->adapt_weights == 1) {update_weights(w_array, p_array, *dir);}
+        if (alg_param->adapt_weights == 1)
+          {
+            update_weights(w_array, p_array, *dir);
+          }
         inv_sp_gap_trace->push_back(*inv_sp_gap);
         
         for(i=0;i<par;i++) {

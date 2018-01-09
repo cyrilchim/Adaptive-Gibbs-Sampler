@@ -4,7 +4,6 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include "includes/Adaptive_Gibbs.hpp"
-#include "rtnorm.hpp"
 #include "truncated_normal.hpp"
 
 

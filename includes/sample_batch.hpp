@@ -5,26 +5,30 @@
 
 #include <RcppArmadillo.h>
 #include "Adaptive_Gibbs.hpp"
-#include "multinomial.hpp"
+#include "sample_batch/multinomial.hpp"
 
 using namespace Rcpp;
 using namespace arma;
 
 
 // acceptance probability in Metropolis algorithm computed from density ratio
-double acceptance_density(vec prop, vec theta,int gp, distribution_class* c_density, param* alg_param)
+double acceptance_density(vec prop, vec theta,int gp, distribution_class* c_density,
+                          param* alg_param)
 {
     if(alg_param->c_density_flag==0)
     {
         //if(alg_param.full_cond==0){
-        alg_param->proposal_log_density  = log(NumericVector( as<Function>(alg_param->R_density)(prop) )[0]);
+        alg_param->proposal_log_density  = log(
+            NumericVector(as<Function>(alg_param->R_density)(prop) )[0]);
         
         if(alg_param->proposal_log_density != -INFINITY)
         {
             //recompute current log-density value if necessary
             if(alg_param->reset_log_density == 1)
             {
-                alg_param->current_log_density =  log(NumericVector( as<Function>(alg_param->R_density)(theta) )[0]);
+                alg_param->current_log_density = log(
+                    NumericVector( as<Function>(alg_param->R_density)(theta) )[0]);
+    
                 alg_param->reset_log_density = 0;
             }
             
@@ -75,32 +79,29 @@ double acceptance_density(vec prop, vec theta,int gp, distribution_class* c_dens
 }
 
 // acceptance probability in Metropolis algorithm computed from log-density ratio
-double acceptance_logdensity(vec prop, vec theta,int gp, distribution_class* c_density, param* alg_param)
+double acceptance_logdensity(vec prop, vec theta,int gp, distribution_class* c_density,
+                             param* alg_param)
 {
     if(alg_param->c_density_flag==0)
     {
         //if(alg_param.full_cond==0){
-        alg_param->proposal_log_density  = NumericVector( as<Function>(alg_param->R_density)(prop) )[0];
+        alg_param->proposal_log_density  = NumericVector(
+          as<Function>(alg_param->R_density)(prop))[0];
         
         if(alg_param->proposal_log_density != -INFINITY)
         {
             //recompute current log-density value if necessary
             if(alg_param->reset_log_density == 1)
             {
-                alg_param->current_log_density =  NumericVector( as<Function>(alg_param->R_density)(theta) )[0];
+                alg_param->current_log_density =  NumericVector(
+                  as<Function>(alg_param->R_density)(theta))[0];
+              
                 alg_param->reset_log_density = 0;
             }
             
             return  exp(alg_param->proposal_log_density - alg_param->current_log_density);
         }
         else return 0;
-        //}
-        /*else
-         {
-         b_prop  = as<Function>(alg_param.R_density)(wrap(prop), gp);
-         b =  as<Function>(alg_param.R_density)(wrap(theta), gp);
-         return  log(b_prop[0]) - log(b[0]);
-         }*/
     }
     
     else
@@ -149,11 +150,15 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
                   vector<vector<double> > *tr, vector<vector<double> > *tr_aux, int *start,
                   distribution_class* c_density, param *alg_param)
 {
-    int i, proposal_update = ceil( double(alg_param->batch_length) / double(alg_param->frequency_ratio) );
+    int i, proposal_update;
+    proposal_update = ceil( double(alg_param->batch_length) / double(alg_param->frequency_ratio) );
+    
     double  gp, A, u;
     vec prop = *theta;
     vec accum(par);
     uvec updates_number(par);
+    
+    unsigned bl_start, bl_end;
     
     accum.zeros();
     updates_number.zeros();
@@ -171,19 +176,27 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
             // gp = gsl_ran_discrete(r, g);
             // gp  = i;
             
-            if( (alg_param->gibbs_step[int(gp)]==0&&alg_param->ignore_gibbs_sampling==1) || (alg_param->gibbs_sampling==0&&alg_param->ignore_gibbs_sampling==0) )
+            if((alg_param->gibbs_step[int(gp)]==0&&alg_param->ignore_gibbs_sampling==1) ||
+               (alg_param->gibbs_sampling==0&&alg_param->ignore_gibbs_sampling==0))
             {
                 //Metropolis adaptation if chosen
                 
                 //generate a proposal
+                bl_start = alg_param->blocking_structure[int(gp)];
+                bl_end = alg_param->blocking_structure[int(gp)+1]-1;
+                
                 u = runif(1)[0];
-                if(u < alg_param->stabilizing_weight){
-                    prop.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) = theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1)
-                    +  (*scale)(gp) * (*S_cond)(gp) * vec( rnorm(alg_param->blocking_structure[gp+1]-alg_param->blocking_structure[gp]) );
-                }else{
-                    prop.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) = theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1)
-                    + 2.38/sqrt(dim) * vec( rnorm(alg_param->blocking_structure[gp+1]-alg_param->blocking_structure[gp]) );
-                }
+                if(u < alg_param->stabilizing_weight)
+                  {
+                    prop.subvec(bl_start, bl_end) = (theta->subvec(bl_start, bl_end) +
+                      (*scale)(gp) * (*S_cond)(gp) * vec( rnorm(bl_end - bl_start + 1) ));
+                  
+                  }
+                else
+                  {
+                  prop.subvec(bl_start, bl_end) = (theta->subvec(bl_start, bl_end)
+                    + 2.38/sqrt(dim)  * vec( rnorm(bl_end - bl_start + 1) ));
+                  }
                 
                 
                 //compute logarithm of acceptance ratio
@@ -207,24 +220,28 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
                 
                 
                 //accept-reject step
+                bl_start = alg_param->blocking_structure[int(gp)];
+                bl_end = alg_param->blocking_structure[int(gp)+1]-1;
+                
                 u =  runif(1)[0];
                 
                 if(u<=A)
                 {
                     //accept proposal
-                    theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1)  = prop.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) ;
+                    theta->subvec(bl_start, bl_end)  = prop.subvec(bl_start, bl_end) ;
                     //change current value of log_density (or conditional log density)
                     if(alg_param->full_cond == 0)
                     {
                         alg_param->current_log_density = alg_param->proposal_log_density;
                     }
                     //change value of the current_location parameter
-                    current_location.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) = theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1);
+                    current_location.subvec(bl_start, bl_end) = (
+                      theta->subvec(bl_start, bl_end));
                 }
                 else
                 {
                     //reject proposal
-                    prop.subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1)  = theta->subvec(alg_param->blocking_structure[int(gp)], alg_param->blocking_structure[int(gp)+1]-1) ;//accept-reject step
+                    prop.subvec(bl_start, bl_end)  = theta->subvec(bl_start, bl_end);
                 }
                 
             }

@@ -7,9 +7,6 @@
 
 #include "density_list.hpp"
 
-#include "includes/update_weights.hpp"
-#include "includes/update_matrix.hpp"
-#include "includes/grad_direction.hpp"
 #include "includes/adaptive_step.hpp"
 #include "includes/sample_batch.hpp"
 #include "includes/reweight.hpp"
@@ -42,14 +39,12 @@ void parallel_step(mat *S, vec* mu, int* start_old, int* start_new, vector<vecto
   
   vec perturb = vec(rnorm(dim+1)); //perturbation from Step 3.1.1 of the ARSGS
   
-  /*parallel_invoke(
-    [&] { adaptive_step(&perturb, S, mu, start_old, start_new, tr_aux_tmp,  Q, L_1_tmp, S_cond_tmp, scale_tmp, dir, z, w, p, inv_sp_gap, inv_sp_gap_trace, tr_proposals, alg_param_tmp);  },
-    [&] { sample_batch(theta,  scale, L_1, S_cond, count, tr, tr_aux, start, alg_param); } 
-  );*/
-  
   task_group g; //parallel computation using tbb library (included in RcppParallel)
-  g.run(  [&] { adaptive_step(&perturb, S, mu, start_old, start_new, tr_aux_tmp,  Q, L_1_tmp, S_cond_tmp, scale_tmp, dir, z, w, p, inv_sp_gap, inv_sp_gap_trace, tr_proposals, alg_param_tmp);  } );
-  g.run(  [&] { sample_batch(theta,  scale, L_1, S_cond, count, tr, tr_aux, start, c_density, alg_param); } );
+  g.run(  [&] { adaptive_step(&perturb, S, mu, start_old, start_new, tr_aux_tmp,  Q, L_1_tmp,
+                              S_cond_tmp, scale_tmp, dir, z, w, p, inv_sp_gap, inv_sp_gap_trace,
+                              tr_proposals, alg_param_tmp);  } );
+  g.run(  [&] { sample_batch(theta,  scale, L_1, S_cond, count, tr, tr_aux, start, c_density,
+                             alg_param); } );
   g.wait();
   
 }
@@ -86,7 +81,8 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   }
 
   if(working_directory == ""){
-    Rcout<<"error: working_directory is not specified. Please use set_working_directory(...) to specify the desired path\n";
+    Rcout<<"error: working_directory is not specified. Please use set_working_directory(...)\
+      to specify the desired path\n";
     return List::create(Named("error") = 1);
   }
  
@@ -119,9 +115,17 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   
   
  //check if R_density properly passed to the function
-  if(c_density_flag==0&&R_density==R_NilValue){Rcout<<"R density is not defined \n"; return List::create(Named("error") = 1);}
+  if(c_density_flag==0&&R_density==R_NilValue)
+    {
+      Rcout<<"R density is not defined \n";
+      return List::create(Named("error") = 1);
+    }
 
-  if(c_density_flag==0&&full_cond==1){Rcout<<"this vesion does not support full conditionals for R_density  \n"; return List::create(Named("error") = 1);}
+  if(c_density_flag==0&&full_cond==1)
+    {
+      Rcout<<"this vesion does not support full conditionals for R_density  \n";
+      return List::create(Named("error") = 1);
+    }
   
   
   
@@ -140,7 +144,11 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   }
   
 
- if(!(NumericVector::is_na(blocking[0]))&&*prev(blocking_structure_tmp.end())!=dim){Rcout<<"error: number of blocks does not match blocking structure\n"; return List::create(Named("error") = 1);}
+ if(!(NumericVector::is_na(blocking[0]))&&*prev(blocking_structure_tmp.end())!=dim)
+   {
+      Rcout<<"error: number of blocks does not match blocking structure\n";
+      return List::create(Named("error") = 1);
+    }
   
   
  
@@ -158,11 +166,18 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     par = blocking_structure_tmp.size() - 1;
     
     alg_param.blocking_structure.resize(par+1);
-    for(i=0;i<=par;i++) alg_param.blocking_structure(i) = (unsigned int)( blocking_structure_tmp(i) );
+    for(i=0;i<=par;i++)
+    {
+      alg_param.blocking_structure(i) = (unsigned int)( blocking_structure_tmp(i) );
+    }
   }
   
   
-  if(prod(sort(alg_param.blocking_structure)==alg_param.blocking_structure)==0 || alg_param.blocking_structure(0)!=0) {Rcout<<"error: wrong blocking structure\n"; return List::create(Named("error") = 1);}
+  if(prod(sort(alg_param.blocking_structure)==alg_param.blocking_structure)==0 ||
+     alg_param.blocking_structure(0)!=0)
+    {
+      Rcout<<"error: wrong blocking structure\n"; return List::create(Named("error") = 1);
+    }
   
   alg_param.gibbs_step.resize(par);
   blocking_structure.set_size(par+1);   
@@ -172,7 +187,11 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   
   //SET UP alg_param.gibbs_step
   
-  if(!(NumericVector::is_na(gibbs_step[0]))&&gibbs_step.size()!=par){Rcout<<"error: number of blocks does not match blocking structure\n"; return List::create(Named("error") = 2);}
+  if(!(NumericVector::is_na(gibbs_step[0]))&&gibbs_step.size()!=par)
+    {
+      Rcout<<"error: number of blocks does not match blocking structure\n";
+      return List::create(Named("error") = 2);
+    }
   
   if(NumericVector::is_na(gibbs_step[0]))
   {
@@ -205,7 +224,11 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   vec p(par);
   
 
-  if(!(NumericVector::is_na(start_weights[0]))&&start_weights.size()!=par){Rcout<<"error: dimension of start_weights does not match dim\n"; return List::create(Named("error") = 1);}
+  if(!(NumericVector::is_na(start_weights[0]))&&start_weights.size()!=par)
+    {
+      Rcout<<"error: dimension of start_weights does not match dim\n";
+      return List::create(Named("error") = 1);
+    }
   
   if(NumericVector::is_na(start_weights[0])) //check if the passed probaility vector is null
   {
@@ -215,9 +238,11 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       {
       s=0; for(i=0;i<par;i++) 
         {
-        if(start_weights[i]<lowerb){
-                      Rcout<<"error: some of the coordinates of start_weights are too small or negative\n"; return List::create(Named("error") = 1);
-                      }
+        if(start_weights[i]<lowerb)
+          {
+            Rcout<<"error: some of the coordinates of start_weights are too small or negative\n";
+            return List::create(Named("error") = 1);
+          }
         s = s+start_weights[i];
         }
       for(i=0;i<par;i++) {p(i) = start_weights[i]/s;}
@@ -235,18 +260,34 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     vec theta(dim); //parameters for which MCMC is run
     vec scale(par); //proposal variance
     
-    if(rate_beta<0){Rcout<<"error: rate_beta has to be non-negative\n"; return List::create(Named("error") = 1);}
+    if(rate_beta<0)
+      {
+        Rcout<<"error: rate_beta has to be non-negative\n";
+        return List::create(Named("error") = 1);
+      }
     
-    if(stabilizing_weight<0){Rcout<<"error: `stabilizing_weight` has to be non-negative\n"; return List::create(Named("error") = 1);}
+    if(stabilizing_weight<0)
+      {
+        Rcout<<"error: `stabilizing_weight` has to be non-negative\n";
+        return List::create(Named("error") = 1);
+      }
     
-    if(!(NumericVector::is_na(start_scales[0]))&&start_scales.size()!=par){Rcout<<"error: dimension of start_scales does not match par\n"; return List::create(Named("error") = 1);}
+    if(!(NumericVector::is_na(start_scales[0]))&&start_scales.size()!=par)
+      {
+        Rcout<<"error: dimension of start_scales does not match par\n";
+        return List::create(Named("error") = 1);
+      }
     
     if(NumericVector::is_na(start_scales[0])){
       scale.ones();
     }
     else{
       scale = start_scales;
-      if(prod(scale>0)==0){Rcout<<"error: proposal variances are improperly defined\n"; return List::create(Named("error") = 1);}
+      if(prod(scale>0)==0)
+        {
+          Rcout<<"error: proposal variances are improperly defined\n";
+          return List::create(Named("error") = 1);
+        }
     }
    
     mat S(dim, dim); //estimated covariance matrix
@@ -269,7 +310,9 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     
    
     
-    vector<vector<double> > tr, tr_aux, tr_aux_tmp; //tr - trace of the chain; tr_aux - auxiliary vectro, part of trace used to re-estimate the covariance matrix; tr_aux_tmp - copy of tr_aux
+    vector<vector<double> > tr, tr_aux, tr_aux_tmp; 
+    // tr - trace of the chain; tr_aux - auxiliary vectro, part of trace used to re-estimate
+    // the covariance matrix; tr_aux_tmp - copy of tr_aux
     
     vector<double> trace_of_direction; //trace of a direction
     for (i = 0 ; i < dim ; i++){
@@ -293,8 +336,15 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   
     
     //SET UP STARTING LOCATION
-    if(NumericVector::is_na(start_location[0])){theta.zeros();}//if starting location is not specified, start from the origin
-    else if(!(NumericVector::is_na(start_location[0]))&&(start_location.size()!=dim)){Rcout<<"error: dimension of start_location does not match dim \n"; return List::create(Named("error") = 1);}
+    if(NumericVector::is_na(start_location[0]))
+      {
+        theta.zeros(); //if starting location is not specified, start from the origin
+      }
+    else if(!(NumericVector::is_na(start_location[0])) && (start_location.size()!=dim))
+      {
+        Rcout<<"error: dimension of start_location does not match dim \n";
+        return List::create(Named("error") = 1);
+      }
     else{ 
       for(i=0;i<dim;i++) theta(i) = start_location[i];
     }
@@ -345,7 +395,8 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     if(alg_param.c_density_flag==0)
     {
       //if(alg_param.full_cond==0){
-      alg_param.current_log_density  = log(NumericVector( as<Function>(alg_param.R_density)(theta) )[0]);
+      alg_param.current_log_density  = log(NumericVector(
+        as<Function>(alg_param.R_density)(theta))[0]);
     }
     else
     {
@@ -362,7 +413,9 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
 
     //set up S_cond
     for(i=0; i<par; i++){
-      (S_cond)(i) = inv(L_1.submat(alg_param.blocking_structure[i], alg_param.blocking_structure[i], alg_param.blocking_structure[i+1]-1, alg_param.blocking_structure[i+1]-1)).t();
+      (S_cond)(i) = inv(L_1.submat(alg_param.blocking_structure[i], alg_param.blocking_structure[i],
+                                   alg_param.blocking_structure[i+1]-1,
+                                   alg_param.blocking_structure[i+1]-1)).t();
     }
 
     vec perturb = vec(dim+1);//perturb vector for adaptive_step function
@@ -393,7 +446,8 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     //number of the sampling weights adaptations
     unsigned int count = 1;
 
-    sample_batch(&theta,  &scale, &L_1, &S_cond,  &count, &tr, &tr_aux, &start, c_density, &alg_param); 
+    sample_batch(&theta,  &scale, &L_1, &S_cond,  &count, &tr, &tr_aux, &start, c_density,
+                 &alg_param); 
     checkUserInterrupt(); //check if interruption was called
     
   //ADAPTIVE ALGORITHM
@@ -463,20 +517,27 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     
     if(track_adaptation==1)
     {
-      Rcout<<count - 2<<" inv_sp_gap: "<<inv_sp_gap<<" max(p): "<<max(p)<<" min(p): "<<min(p)<<" w(par): "<<w[par]<<"\n";
+      Rcout<<count - 2<<" inv_sp_gap: "<<inv_sp_gap<<" max(p): "<<max(p)<<" min(p): "<<min(p)<<"\n";
     }
     
     if(parallel_computation == 1)
       {
         //step of the ARSGS. Adaptation is performed in parallel to sampling
-        parallel_step(&S, &mu, &start_old, &start_new, &tr_aux_tmp,  &Q, &L_1_tmp, &S_cond_tmp, &scale_tmp, &dir, &z, &w, &p, &inv_sp_gap, &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp, &theta,  &scale, &L_1, &S_cond, &count, &tr, &tr_aux, &start, &alg_param);
+        parallel_step(&S, &mu, &start_old, &start_new, &tr_aux_tmp,  &Q,
+                      &L_1_tmp, &S_cond_tmp, &scale_tmp, &dir, &z, &w, &p, &inv_sp_gap,
+                      &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp, &theta,  &scale, &L_1,
+                      &S_cond, &count, &tr, &tr_aux, &start, &alg_param);
       }
       else
         {
         //step of the ARSGS
           perturb = vec(rnorm(dim+1)); //perturbation from Step 3.1.1 of the ARSGS
-          adaptive_step(&perturb, &S, &mu, &start_old, &start_new, &tr_aux_tmp,  &Q, &L_1_tmp, &S_cond_tmp, &scale_tmp, &dir, &z, &w, &p, &inv_sp_gap, &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp);
-          sample_batch(&theta,  &scale, &L_1, &S_cond, &count, &tr, &tr_aux, &start, c_density, &alg_param);
+          adaptive_step(&perturb, &S, &mu, &start_old, &start_new, &tr_aux_tmp, 
+                        &Q, &L_1_tmp, &S_cond_tmp, &scale_tmp, &dir, &z, &w, &p,
+                        &inv_sp_gap, &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp);
+
+          sample_batch(&theta,  &scale, &L_1, &S_cond, &count, &tr, &tr_aux, &start,
+                       c_density, &alg_param);
         }
     
 
@@ -576,7 +637,11 @@ Rcout<<"\n";
       convert.str("");
       convert.clear();
       trace.open(working_directory+"trace_of_coordinate_"+file_n+".txt");
-      if(!trace.is_open()) {return List::create(Named("error: could not a open file for saving the trace of the chain") = 1);}
+      if(!trace.is_open())
+        {
+          return List::create(Named("error: could not a open file for\
+                                      saving the trace of the chain") = 1);
+        }
       for (it = (tr[i]).begin(); it != (tr[i]).end() ; it++) {
         trace << std::fixed << std::setprecision(precision)<< *it << endl;
         }
@@ -590,7 +655,11 @@ Rcout<<"\n";
     
   //write weights trace to a file
   trace.open(working_directory+"weights"+".txt");
-  if(!trace.is_open()) {return List::create(Named("error: could not a open file for saving the trace of the chain") = 1);}
+  if(!trace.is_open())
+    {
+      return List::create(Named("error: could not a open file for\
+                                  saving the trace of the chain") = 1);
+    }
   for(i=0;i<tr_weights[0].size();i++)
     {
       for (int j = 0; j < par; j++) {
@@ -601,7 +670,11 @@ Rcout<<"\n";
   trace.close();
   //write spectral gap trace to a file
   trace.open(working_directory+"inv_spectral_gap"+".txt");
-  if(!trace.is_open()) {Rcout<<"could not a open file for saving the trace of the spectral gap \n;"; return List::create(Named("error") = 1);}
+  if(!trace.is_open())
+    {
+      Rcout<<"could not a open file for saving the trace of the spectral gap \n;";
+      return List::create(Named("error") = 1);
+    }
   for(i=0;i<inv_sp_gap_trace.size();i++)
     {
       trace << std::fixed << std::setprecision(precision)<< inv_sp_gap_trace[i] << endl;
@@ -610,7 +683,11 @@ Rcout<<"\n";
   
   //write proposal variances trace to a file
   trace.open(working_directory+"proposals"+".txt");
-  if(!trace.is_open()) {Rcout<<"could not a open file for saving the trace of the proposals \n;"; return List::create(Named("error") = 1);}
+  if(!trace.is_open())
+    {
+      Rcout<<"could not a open file for saving the trace of the proposals \n;";
+      return List::create(Named("error") = 1);
+    }
   for(i=0;i<tr_proposals[0].size();i++)
     {
       for (int j = 0; j < par; j++) {
@@ -706,7 +783,8 @@ estimated_covariance<-function()
 }
 
 
-# Pointer implementation for R. Allows passing and changing additional parameters for R-defined target densities 
+# Pointer implementation for R.
+# Allows passing and changing additional parameters for R-defined target densities 
  Rpointer=function(input)
 {  
   Rparameters=new.env(parent=globalenv())  
