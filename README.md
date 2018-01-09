@@ -12,8 +12,8 @@ This package was tested on OS X 10.10 and Ubuntu 16.04
 Mac Users:
 1. Make sure the newest version of R is installed. If RStudio is used, please update to at least version 0.10.3
 2. Open terminal:
-  * Run<br\>
-  `xcode-select --install`<br\>
+  * Run <br/>
+  `xcode-select --install`<br/>
   to install xcode command line tools (this will install gcc in particular).
   *  If gfortran is not installed on your machine, run <br/>
 		`curl -O http://r.research.att.com/libs/gfortran-4.8.2-darwin13.tar.bz2`<br/>
