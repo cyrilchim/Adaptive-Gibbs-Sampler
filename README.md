@@ -6,7 +6,17 @@ The package provides a set of functions to run Adaptive Random Scan Gibbs (ARSG)
 
 This package was tested on OS X 10.10 and Ubuntu 16.04
 
-[TOC]
+Table of Contents
+-----------------
+
+   * [Adaptive-Gibbs-Sampler](#adaptive-gibbs-sampler)
+      * [Description](#description)
+      * [Installation](#installation)
+         * [Compile Adaptive_Gibbs.cpp](#compile-adaptive_gibbscpp)
+      * [Using the library](#using-the-library)
+         * [Minimum working example](#minimum-working-example)
+         * [How to write custom densities](#how-to-write-custom-densities)
+	 
 
 ## Installation
 Mac Users:
