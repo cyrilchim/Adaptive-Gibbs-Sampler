@@ -49,16 +49,16 @@ Rcpp::sourceCpp("~/Downloads/Adaptive-Gibbs-Sampler/Adaptive_Gibbs_parallel.cpp"
 
 ## Using the library
 
-After loading the library:
-1. First, set up a folder where all the output will be stored using set_working_directory(paths), where paths is the desired folder, say 
-
+After loading.compiling the library:
+1. First, set up a folder where all the output will be stored using `set_working_directory(path)`, where `path` is the desired folder, say 
+```R
 set_working_directory("Users/Admin/AdaptiveGibbs/simulation_results/")
-
+```
 Notice, that you need to indicate the precise path to the directory, NOT "~/AdaptiveGibbs/simulation_results". Also, notice "/" at the end of the pass.
 
-2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/AMCMC_info.md), appendix_AMCMC.txt,  and tutorial_examples.R to learn about AMCMC(...) function. 
+2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/AMCMC_info.md), [AMCMC_appendix.md](../master/AMCMC_appendix.md),  and [tutorials](../master/tutorials) to learn how to use `AMCMC(...)` function. 
 
-3. Refer to how_to_write_density.txt for details on writing your own target density
+### Minimum working example
 
-4. Feel free to reuse any part of the code. See reuse_the_code.txt
+### How to write custom densities
 
