@@ -53,23 +53,18 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
            double frac_burn_in = 10, int thin = 1, double batch_length = 100,
            int frequency_ratio = 100,  NumericVector start_location = NA_REAL, int dims = 1,
            bool adapt_proposals = 1, bool adapt_weights = 1, NumericVector start_weights=NA_REAL,
-           bool c_density_flag = 1, bool logdensity = 0, bool full_cond = 0,
+           bool logdensity = 0, bool full_cond = 0,
            bool gibbs_sampling = 0, bool estimate_spectral_gap = 1, double rate_beta = 0,
            NumericVector blocking = NA_REAL,  NumericVector gibbs_step = NA_REAL,
            NumericVector start_scales = NA_REAL, int precision = 8, bool save = 1,
            bool reweight = 1, double stabilizing_weight = 0.9,
            bool perturb_covariance = 0, bool track_adaptation = 0,
-           bool display_progress = 1, bool parallel_computation = 0)
+           bool display_progress = 1, bool parallel_adaptation = 0)
 {
   
   Rcout<<"Adaptive MCMC v0.1\n"<<endl;
-
-  //allow parallelisation for C++ densities only
-  if(parallel_computation == 1 && c_density_flag == 0)
-  {
-    Rcout<<"Parallelization is not available for R-defined densities.\n";
-    return List::create(Named("error") = 1);
-  }
+  
+  bool c_density_flag = 1; // whether c++ density is being used
 
   if(working_directory == ""){
     Rcout<<"error: working_directory is not specified. Please use set_working_directory(...)\
@@ -95,18 +90,17 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   //number of sampled points
   int start = 0, start_old = 0, start_new = 0;
 
-  //auxiliary variables
+  // auxiliary variables
   int i, j, sz;
   double s;
   
  
   param alg_param;// algorithm parameters
 
- //check if R_density properly passed to the function
-  if(c_density_flag==0&&R_density==R_NilValue)
+  // switch `c_density_flag` to 0 if R_density is defined
+  if(R_density!=R_NilValue)
     {
-      Rcout<<"R density is not defined \n";
-      return List::create(Named("error") = 1);
+      c_density_flag = 0;
     }
 
   if(c_density_flag==0&&full_cond==1)
@@ -115,6 +109,14 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       return List::create(Named("error") = 1);
     }
 
+  //allow parallelisation for C++ densities only
+  if(parallel_adaptation == 1 && c_density_flag == 0)
+  {
+    Rcout<<"Parallelization is not available for R-defined densities.\n";
+    return List::create(Named("error") = 1);
+  }
+  
+  
   //SET UP blocking_structure VARIABLE
   
   NumericVector blocking_structure_tmp = NULL;
@@ -354,6 +356,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     alg_param.frequency_ratio = frequency_ratio;
     alg_param.perturb_covariance = perturb_covariance;
     alg_param.stabilizing_weight = stabilizing_weight;
+    alg_param.reset_log_density = 0;  
   
     //set up current density value
 
@@ -467,7 +470,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       Rcout<<count - 2<<" inv_sp_gap: "<<inv_sp_gap<<" max(p): "<<max(p)<<" min(p): "<<min(p)<<"\n";
     }
     
-    if(parallel_computation == 1)
+    if(parallel_adaptation == 1)
       {
         //step of the ARSGS. Adaptation is performed in parallel to sampling
         parallel_step(&S, &mu, &start_old, &start_new, &tr_aux_tmp,  &Q,
