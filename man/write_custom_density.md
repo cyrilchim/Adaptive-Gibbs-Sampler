@@ -73,32 +73,27 @@ double gaussian::density(vec theta)
 }
 ```
 
-Important: 
+
+## C++ user defined target density
 
 1. To access the elements of a block gp , one can refer to the corresponding subvector of theta through blocking_structure parameter:
-
+```C++
 theta.subvec(blocking_structure(gp), blocking_structure(gp+1)-1)
+```
+2. In order to specify sampling from the full conditionals function `sample_full_cond(vec theta, int prob_ind)`, R/Rcpp random number generator should be used. For example, to sample a 100 standard normal random variables type `rnorm(100)`, which is of NumericVector type. Use `runif(100)` to sample the uniform random variables.
 
-2. In order to specify sampling from the full conditionals sample_full_cond(vec theta, int gp), R/Rcpp random number generator should be used. For example, to sample a 100 standard normal random variables type rnorm(100), which is of NumericVector type. Use runif(100) to sample the uniform random variables.
-
-
-
-C++ user defined target density:
-
-The user is expected to be able to mimic gaussian_target.hpp file and specify the necessary functions in template.hpp.
+3. The user is expected to be able to mimic gaussian_target.hpp file and specify the necessary functions in template.hpp.
 
 To call  AMCMC(...) function for the user defined C++ density, run
-
+```C++
 AMCMC(distribution_type = "new_density", ... )
+```
 
+In order to change a name of the target distribution density to, say, `my_distribution`:
 
-Change a name of the user defined C++ target density:
-
-In order to change a name of the target distribution density to, say, "my_distribution":
-
-1. Create a new .hpp file and call it, say, "my_distribution.hpp".
-2. Copy paste the content of template.hpp to the newly created file "my_distribution.hpp". 
-3. Change the name of the class from "new_density" to "my_distribution".
+1. Create a new .hpp file and call it, say, `my_distribution.hpp`.
+2. Copy paste the content of template.hpp to the newly created file `my_distribution.hpp`. 
+3. Change the name of the class from `new_density` to `my_distribution`.
 4. Open file density_list.hpp In the preamble add 
  ```C++
  #include "my_distribution .hpp"
