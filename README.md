@@ -69,6 +69,34 @@ Notice, that you need to indicate the precise path to the directory, NOT "~/Adap
 2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/AMCMC_info.md), [AMCMC_appendix.md](../master/AMCMC_appendix.md),  and [tutorials](../master/tutorials) to learn how to use `AMCMC(...)` function. 
 
 ### Minimum working example
+Consider sampling from a 10-dimensional multivariate normal target distribution with a covariance matrix `S`. As an example, the user can generate a block diagonal matrix using `set_example_covariance`:
+```R
+dim <- 10 # dimensionality of the target 
+N <- 10000 # number of desired samples
+# set an example covariance matrix
+set_example_covariance(dim)
+# print the matrix on screen
+get_covariance()
+# set random seed
+set.seed(42)
+```
+In order to sample from the distribution we need to provide at least a density function. The target distribution is described in [gaussian.hpp](../master/examples/gaussian.hpp). Sampling can be performed usinf
+```C++
+adaptive_chain<-AMCMC(distribution_type = "gaussian", logdensity = 1, dim = dim, N = N)
+```
+The function calls the coordinate-wise Adaptive Metropolis within Adaptive Gibbs Sampler for `gaussian` distribution. `logdensity` specifies that the log-density of the target distribution is used for Metropolis acceptance-rejection step. The output of the chain is written to the prespecified directory (use `get_working_directory()` to print the directory on screen). `adaptive_chain` stores the value of estimated inverse pseudo-spectral gap and the optimal sampling selection probabilities. 
+
+Use `trace_coord(i)` to access the trace of the coordinate `i`. For example, in order to estimate the covariance matrix, one could use the following code
+```R
+S <- matrix(0,nrow = N, ncol = dim)
+for(i in 1:dim)
+  {
+   v <- trace_coord(i)
+   S[,i] <- v
+S <- cor(S)
+# estimated correlation matrix:
+S
+```
 
 ### How to write custom densities
 
