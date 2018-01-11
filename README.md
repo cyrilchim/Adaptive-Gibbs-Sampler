@@ -48,12 +48,12 @@ install.packages("Rcpp","RcppArmadillo", "RcppParallel")
 
 3. Open R/Rstudio session use `Rcpp::sourceCpp` to compile the library:
 ```R
-Rcpp::sourceCpp("~/Downloads/Adaptive-Gibbs-Sampler/Adaptive_Gibbs_parallel.cpp")
+Rcpp::sourceCpp("~/Downloads/Adaptive-Gibbs-Sampler/Adaptive_Gibbs.cpp")
 ```
 
 3. If you want to compile the library later to a specific folder, say, "~/Downloads/Adaptive-Gibbs-SamplerAdaptiveGibbsLib", you need to specify `cacheDir` argument:
 ```R
-Rcpp::sourceCpp("~/Downloads/Adaptive-Gibbs-Sampler/Adaptive_Gibbs_parallel.cpp", cacheDir = "~/Downloads/Adaptive-Gibbs-Sampler/AdaptiveGibbsLib")
+Rcpp::sourceCpp("~/Downloads/Adaptive-Gibbs-Sampler/Adaptive_Gibbs.cpp", cacheDir = "~/Downloads/Adaptive-Gibbs-Sampler/AdaptiveGibbsLib")
 ```
 4. Use Step 3 to load precompiled library. It will be recompiled automatically if any changes are made to the source files.
 
