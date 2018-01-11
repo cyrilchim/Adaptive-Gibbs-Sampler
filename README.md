@@ -66,7 +66,7 @@ set_working_directory("Users/Admin/AdaptiveGibbs/simulation_results/")
 ```
 Notice, that you need to indicate the precise path to the directory, NOT "~/AdaptiveGibbs/simulation_results". Also, notice "/" at the end of the pass.
 
-2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/man/AMCMC_info.md), [AMCMC_appendix.md](../master/AMCMC_appendix.md),  and [tutorials](../master/man/tutorials) to learn how to use `AMCMC(...)` function. 
+2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/man/AMCMC_info.md), [AMCMC_appendix.md](../master/man/AMCMC_appendix.md),  and [tutorials](../master/man/tutorials) to learn how to use `AMCMC(...)` function. 
 
 ### Gaussian example
 Consider sampling from a 10-dimensional multivariate normal target distribution with a covariance matrix `S`. As an example, the user can generate a block diagonal matrix using `set_example_covariance`:
