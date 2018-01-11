@@ -117,8 +117,8 @@ AMCMC(R_density = example_logdensity, logdensity = 1,
 However, a much faster algorithm is achieved if a C++ density is supplied. A template file is provided in [template.hpp](../master/examples/template.hpp). You have to specify at least one function of the template class, say, log-density function:
 ```C++
 double gaussian::logdensity(vec theta)
-	{
-	 return -1./2*dot(theta.t()*Q,theta);
-	}
+{
+  return -1./2*dot(theta.t()*Q,theta);
+}
 ```
 Precision matrix `Q` should be specified in the constructor. It could be read from a file. Various examples can be found [here](../master/exampes) for 
