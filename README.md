@@ -14,7 +14,7 @@ Table of Contents
       * [Installation](#installation)
          * [Compile Adaptive_Gibbs.cpp](#compile-adaptive_gibbscpp)
       * [Using the library](#using-the-library)
-         * [Minimum working example](#minimum-working-example)
+         * [Gaussian example](#gaussian-example)
          * [How to write custom densities](#how-to-write-custom-densities)
 	 
 
@@ -66,9 +66,9 @@ set_working_directory("Users/Admin/AdaptiveGibbs/simulation_results/")
 ```
 Notice, that you need to indicate the precise path to the directory, NOT "~/AdaptiveGibbs/simulation_results". Also, notice "/" at the end of the pass.
 
-2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/AMCMC_info.md), [AMCMC_appendix.md](../master/AMCMC_appendix.md),  and [tutorials](../master/tutorials) to learn how to use `AMCMC(...)` function. 
+2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/man/AMCMC_info.md), [AMCMC_appendix.md](../master/AMCMC_appendix.md),  and [tutorials](../master/man/tutorials) to learn how to use `AMCMC(...)` function. 
 
-### Minimum working example
+### Gaussian example
 Consider sampling from a 10-dimensional multivariate normal target distribution with a covariance matrix `S`. As an example, the user can generate a block diagonal matrix using `set_example_covariance`:
 ```R
 dim <- 10 # dimensionality of the target 
@@ -80,7 +80,7 @@ get_covariance()
 # set random seed
 set.seed(42)
 ```
-In order to sample from the distribution we need to provide at least a density function. The target distribution is described in [gaussian.hpp](../master/examples/gaussian.hpp). Sampling can be performed usinf
+In order to sample from the distribution we need to provide at least a density function. The target distribution is described in [gaussian_target.hpp](../master/examples/gaussian_target.hpp). Sampling can be performed usinf
 ```C++
 adaptive_chain<-AMCMC(distribution_type = "gaussian", logdensity = 1, dim = dim, N = N)
 ```
@@ -100,3 +100,25 @@ S
 
 ### How to write custom densities
 
+Detailed guide on writing user-defined densities is described in [write_custom_density.md](../master/man/write_custom_density.md).  
+One could provide an R-defined density, say,
+```R
+example_logdensity<-function(x)
+{ 
+  return( -1./2* (t(x) %*%Q_0%*%  x)[1,1] )
+}
+```
+and call 
+```R
+AMCMC(R_density = example_logdensity, logdensity = 1,
+                        dim = dim, N = N,  blocking = c(1,2,2,5))
+```			
+
+However, a much faster algorithm is achieved if a C++ density is supplied. A template file is provided in [template.hpp](../master/examples/template.hpp). You have to specify at least one function of the template class, say, log-density function:
+```C++
+double gaussian::logdensity(vec theta)
+	{
+	 return -1./2*dot(theta.t()*Q,theta);
+	}
+```
+Precision matrix `Q` should be specified in the constructor. It could be read from a file. Various examples can be found [here](../master/exampes) for 
