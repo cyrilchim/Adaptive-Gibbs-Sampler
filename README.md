@@ -110,8 +110,7 @@ example_logdensity<-function(x)
 ```
 and call 
 ```R
-AMCMC(R_density = example_logdensity, logdensity = 1,
-                        dim = dim, N = N,  blocking = c(1,2,2,5))
+AMCMC(R_density = example_logdensity, logdensity = 1, dim = dim, N = N)
 ```			
 
 However, a much faster algorithm is achieved if a C++ density is supplied. A template file is provided in [template.hpp](../master/examples/template.hpp). You have to specify at least one function of the template class, say, log-density function:
