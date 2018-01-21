@@ -134,17 +134,17 @@ double acceptance_logdensity(vec prop, vec theta, int prob_ind, distribution_cla
 
 
 //RSGS STEP (Step 1 from ARSGS paper)
-// here theta is a starting location for a batch, scale - vector of scales in Metropolis-within-Gibbs algorithm
+// here theta is a starting location for a batch, scaling - vector of scalings in Metropolis-within-Gibbs algorithm
 // tr - trace of the chain
 // tr_aux - auxiliary variable that records samples that are used by adaptive_step in order to update the covariance S
 // start - index of the variable from which the batch is sampled
 // count - batch number
-void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned int* count,
+void sample_batch(vec* theta, vec* scaling, mat *L_1, field<mat>* S_cond, unsigned int* count,
                   vector<vector<double> > *tr, vector<vector<double> > *tr_aux, int *start,
                   distribution_class* c_density, param *alg_param)
 {
     int i, proposal_update;
-    proposal_update = ceil( double(alg_param->batch_length) / double(alg_param->frequency_ratio) );
+    proposal_update = ceil( double(alg_param->batch_length) / double(alg_param->frequency_proposal_update) );
     
     double  prob_ind, acceptance_ratio, u;
     double target_acceptance;
@@ -179,16 +179,16 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
                 
             //generate a proposal
             u = runif(1)[0];
-            if(u < alg_param->stabilizing_weight)
+            if(u < 1 - alg_param->stabilizing_weight)
               {
                 prop.subvec(bl_start, bl_end) = (theta->subvec(bl_start, bl_end) +
-                  (*scale)(prob_ind) * (*S_cond)(prob_ind) * vec( rnorm(bl_end - bl_start + 1) ));
+                  (*scaling)(prob_ind) * (*S_cond)(prob_ind) * vec( rnorm(bl_end - bl_start + 1) ));
                   
               }
             else
               {
                 prop.subvec(bl_start, bl_end) = (theta->subvec(bl_start, bl_end)
-                  + 2.38/sqrt(dim)  * vec( rnorm(bl_end - bl_start + 1) ));
+                  + alg_param->stabilizing_coeff * vec( rnorm(bl_end - bl_start + 1) ));
               }
                 
             //compute logarithm of acceptance ratio
@@ -252,22 +252,23 @@ void sample_batch(vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned
             }
         }
 
-        //adapt proposal variances (scales)
+        //adapt proposal variances (scalings)
         if(alg_param->adapt_proposals==1 && alg_param->burn_in==0 && l % proposal_update == 0) {
             for(int j=0;j<par;j++)
               {
-                if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) == 1 &&
-                   updates_number(j)>0)
+                if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) == 1)
                   {
                     target_acceptance = 0.44;
                   }
-                else if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) > 1 &&
-                        updates_number(j)>0)
+                else if(alg_param->blocking_structure(j+1) - alg_param->blocking_structure(j) > 1)
                   {
                     target_acceptance = 0.234;
                   }
-                (*scale)(j) = ((*scale)(j) * exp(pow(*start + l, -0.7 / (1 + alg_param->beta))  *
-                  (accum(j) / updates_number(j) - target_acceptance)));
+                if(updates_number(j)>0)
+                {
+                  (*scaling)(j) = ((*scaling)(j) * exp(pow(*start + l, -0.7 / (1 + alg_param->beta))  *
+                    (accum(j) / updates_number(j) - target_acceptance)));
+                }
               }
             
             accum.zeros(); updates_number.zeros();

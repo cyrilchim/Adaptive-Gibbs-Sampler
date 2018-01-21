@@ -29,16 +29,16 @@ using namespace std;
 distribution_class* c_density;
 
 //parallel sampling in a manner described n ARSG paper
-void parallel_step(mat *S, vec* mu, int* start_old, int* start_new, vector<vector<double> >* tr_aux_tmp,  mat* Q, mat* L_1_tmp, field<mat>* S_cond_tmp, vec *scale_tmp, vec* dir, vec* z, vec* w, vec* p, double* inv_sp_gap, vector<double> *inv_sp_gap_trace, vector<vector<double> > *tr_proposals, param *alg_param_tmp, vec* theta, vec* scale, mat *L_1, field<mat>* S_cond, unsigned int* count, vector<vector<double> > *tr, vector<vector<double> > *tr_aux, int *start, param *alg_param)
+void parallel_step(mat *S, vec* mu, int* start_old, int* start_new, vector<vector<double> >* tr_aux_tmp,  mat* Q, mat* L_1_tmp, field<mat>* S_cond_tmp, vec *scaling_tmp, vec* dir, vec* z, vec* w, vec* p, double* inv_sp_gap, vector<double> *inv_sp_gap_trace, vector<vector<double> > *tr_proposals, param *alg_param_tmp, vec* theta, vec* scaling, mat *L_1, field<mat>* S_cond, unsigned int* count, vector<vector<double> > *tr, vector<vector<double> > *tr_aux, int *start, param *alg_param)
 {
   
   vec perturb = vec(rnorm(dim+1)); //perturbation from Step 3.1.1 of the ARSGS
   
   task_group g; //parallel computation using tbb library (included in RcppParallel)
   g.run(  [&] { adaptive_step(&perturb, S, mu, start_old, start_new, tr_aux_tmp,  Q, L_1_tmp,
-                              S_cond_tmp, scale_tmp, dir, z, w, p, inv_sp_gap, inv_sp_gap_trace,
+                              S_cond_tmp, scaling_tmp, dir, z, w, p, inv_sp_gap, inv_sp_gap_trace,
                               tr_proposals, alg_param_tmp);  } );
-  g.run(  [&] { sample_batch(theta,  scale, L_1, S_cond, count, tr, tr_aux, start, c_density,
+  g.run(  [&] { sample_batch(theta,  scaling, L_1, S_cond, count, tr, tr_aux, start, c_density,
                              alg_param); } );
   g.wait();
   
@@ -51,14 +51,14 @@ void parallel_step(mat *S, vec* mu, int* start_old, int* start_new, vector<vecto
 //Adaptive MCMC agorithm exported to R
 List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_density=R_NilValue,
            double frac_burn_in = 10, int thin = 1, double batch_length = 100,
-           int frequency_ratio = 100,  NumericVector start_location = NA_REAL, int dims = 1,
+           int frequency_proposal_update = 100,  NumericVector start_location = NA_REAL, int dims = 1,
            bool adapt_proposals = 1, bool adapt_weights = 1, NumericVector start_weights=NA_REAL,
            bool logdensity = 0, bool full_cond = 0,
            bool gibbs_sampling = 0, bool estimate_spectral_gap = 1, double rate_beta = 0,
            NumericVector blocking = NA_REAL,  NumericVector gibbs_step = NA_REAL,
-           NumericVector start_scales = NA_REAL, int precision = 8, bool save = 1,
-           bool reweight = 1, double stabilizing_weight = 0.9,
-           bool perturb_covariance = 0, bool track_adaptation = 0,
+           NumericVector start_scaling = NA_REAL, int precision = 8, bool save = 1,
+           bool reweight = 0, double stabilizing_weight = 0.1, double stabilizing_coeff = NA_REAL,
+           bool perturb_covariance = 0, double perturb_coeff = NA_REAL, bool track_adaptation = 0,
            bool display_progress = 1, bool parallel_adaptation = 0)
 {
   
@@ -238,7 +238,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     vec mu(dim); // mean value vector
     mu.zeros();
     vec theta(dim); //parameters for which MCMC is run
-    vec scale(par); //proposal variance
+    vec scaling(par); //proposal variance
     
     if(rate_beta<0)
       {
@@ -246,24 +246,24 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
         return List::create(Named("error") = 1);
       }
     
-    if(stabilizing_weight<0)
+    if(stabilizing_weight<0 || stabilizing_weight>1)
       {
-        Rcout<<"error: `stabilizing_weight` has to be non-negative\n";
+        Rcout<<"error: `stabilizing_weight` has to belong to [0,1]\n";
         return List::create(Named("error") = 1);
       }
     
-    if(!(NumericVector::is_na(start_scales[0]))&&start_scales.size()!=par)
+    if(!(NumericVector::is_na(start_scaling[0]))&&start_scaling.size()!=par)
       {
-        Rcout<<"error: dimension of start_scales does not match par\n";
+        Rcout<<"error: dimension of start_scaling does not match par\n";
         return List::create(Named("error") = 1);
       }
     
-    if(NumericVector::is_na(start_scales[0])){
-      scale.ones();
+    if(NumericVector::is_na(start_scaling[0])){
+      scaling.ones();
     }
     else{
-      scale = start_scales;
-      if(prod(scale>0)==0)
+      scaling = start_scaling;
+      if(prod(scaling>0)==0)
         {
           Rcout<<"error: proposal variances are improperly defined\n";
           return List::create(Named("error") = 1);
@@ -353,11 +353,46 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     alg_param.estimate_spectral_gap = estimate_spectral_gap;
     alg_param.thin = thin;
     alg_param.beta = rate_beta;
-    alg_param.frequency_ratio = frequency_ratio;
+    alg_param.frequency_proposal_update = frequency_proposal_update;
     alg_param.perturb_covariance = perturb_covariance;
     alg_param.stabilizing_weight = stabilizing_weight;
     alg_param.reset_log_density = 0;  
-  
+    
+    
+    if(NumericVector::is_na(perturb_coeff))
+    {
+      alg_param.perturb_coeff = 1. / (par * par * par);
+    }
+    else
+    {
+      if(perturb_coeff>0)
+      {
+        alg_param.perturb_coeff = perturb_coeff;
+      }
+      else
+      {
+        Rcout<<"error: `perturb_coeff` should be positive \n";
+        return List::create(Named("error") = 1);
+      }
+    }
+    
+    if(NumericVector::is_na(stabilizing_coeff))
+    {
+      alg_param.stabilizing_coeff = 0.1 / dim;
+    }
+    else
+    {
+      if(stabilizing_coeff>=0)
+      {
+        alg_param.stabilizing_coeff = stabilizing_coeff;
+      }
+      else
+      {
+        Rcout<<"error: `stabilizing_coeff` should be positive \n";
+        return List::create(Named("error") = 1);
+      }
+    }
+
     //set up current density value
 
     if(alg_param.c_density_flag==0)
@@ -406,7 +441,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     //number of the sampling weights adaptations
     unsigned int count = 1;
 
-    sample_batch(&theta,  &scale, &L_1, &S_cond,  &count, &tr, &tr_aux, &start, c_density,
+    sample_batch(&theta,  &scaling, &L_1, &S_cond,  &count, &tr, &tr_aux, &start, c_density,
                  &alg_param); 
     checkUserInterrupt(); //check if interruption was called
     
@@ -421,7 +456,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   S_cond_tmp = S_cond;
   
   
-  vec scale_tmp(par);// copy of w, p, scale
+  vec scaling_tmp(par);// copy of w, p, scaling
   param alg_param_tmp;//copy of alg_param
   
   Rcout<<"Sampling..."<<endl;
@@ -430,7 +465,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   mu = current_location;
    
   // Sample first batch of coordinates
-  sample_batch(&theta,  &scale, &L_1, &S_cond, &count, &tr, &tr_aux, &start, c_density, &alg_param);
+  sample_batch(&theta,  &scaling, &L_1, &S_cond, &count, &tr, &tr_aux, &start, c_density, &alg_param);
   checkUserInterrupt(); //check if interruption was called to terminate R session
   
   start_new = start;
@@ -450,7 +485,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
 }
 
   L_1_tmp = L_1;
-  scale_tmp = scale;
+  scaling_tmp = scaling;
   alg_param_tmp = alg_param;
   
   //AIRMCMC step
@@ -474,19 +509,19 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       {
         //step of the ARSGS. Adaptation is performed in parallel to sampling
         parallel_step(&S, &mu, &start_old, &start_new, &tr_aux_tmp,  &Q,
-                      &L_1_tmp, &S_cond_tmp, &scale_tmp, &grad_dir, &z, &w, &p, &inv_sp_gap,
-                      &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp, &theta,  &scale, &L_1,
+                      &L_1_tmp, &S_cond_tmp, &scaling_tmp, &grad_dir, &z, &w, &p, &inv_sp_gap,
+                      &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp, &theta,  &scaling, &L_1,
                       &S_cond, &count, &tr, &tr_aux, &start, &alg_param);
       }
       else
         {
-        //step of the ARSGS
+          //step of the ARSGS
           perturb = vec(rnorm(dim+1)); //perturbation from Step 3.1.1 of the ARSGS
           adaptive_step(&perturb, &S, &mu, &start_old, &start_new, &tr_aux_tmp, 
-                        &Q, &L_1_tmp, &S_cond_tmp, &scale_tmp, &grad_dir, &z, &w, &p,
+                        &Q, &L_1_tmp, &S_cond_tmp, &scaling_tmp, &grad_dir, &z, &w, &p,
                         &inv_sp_gap, &inv_sp_gap_trace, &tr_proposals, &alg_param_tmp);
 
-          sample_batch(&theta,  &scale, &L_1, &S_cond, &count, &tr, &tr_aux, &start,
+          sample_batch(&theta,  &scaling, &L_1, &S_cond, &count, &tr, &tr_aux, &start,
                        c_density, &alg_param);
         }
 
@@ -501,11 +536,14 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
       {
       
         for(i = 0; i<par; i++)
-          {
-            alg_param.p[i] = p[i];
-          }
+        {
+           alg_param.p[i] = p[i];
+        }
         //reweight probability weights for Metropolis update
-        if(reweight == 1) {reweight_p(&alg_param); }
+        if(reweight == 1)
+          {
+            reweight_p(&alg_param);
+          }
         
       }
     
@@ -538,7 +576,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
    L_1 = L_1_tmp;
    S_cond = S_cond_tmp;
 
-   scale_tmp = scale;
+   scaling_tmp = scaling;
    
    
    alg_param_tmp = alg_param;
@@ -555,7 +593,10 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
    
 }
 
-// END OF THE ADAPTIVE MCMC
+// END OF THE ADAPTIVE MCMC ALGORITHM
+
+Rcout<<"\n\n";
+Rcout.flush();
   
 //SAVE THE OUTPUT TO working_directory 
 
@@ -622,7 +663,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   trace.open(working_directory+"proposals"+".txt");
   if(!trace.is_open())
     {
-      Rcout<<"could not a open file for saving the trace of the proposals \n;";
+      Rcout<<"could not a open file for saving the trace of the proposals \n";
       return List::create(Named("error") = 1);
     }
   for(i=0;i<tr_proposals[0].size();i++)
@@ -666,7 +707,7 @@ if(alg_param.adapt_weights==1||alg_param.estimate_spectral_gap==1)
 }
 
 
-// END OF AMCMC FUNCTION
+// END OF `AMCMC` FUNCTION
 
 //****************************************************************************//
 

@@ -83,7 +83,8 @@ void adaptive_step(vec *perturb, mat *S, vec* mu, int* start_old, int* start_new
         
         
         *dir = grad_direction(perturb, z, S, L_1, w_array, inv_sp_gap, alg_param);
-        if (alg_param->adapt_weights == 1)
+        
+         if (alg_param->adapt_weights == 1)
           {
             update_weights(w_array, p_array, *dir);
           }

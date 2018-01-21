@@ -24,7 +24,7 @@ double m_iter; // index m of the sequence a_m
 
 uvec blocking_structure; // par+1 dimensional vector that allows easy access to the elements of blocks for the blocking parameter of AMCMC(...) function.  Defined as blocking_structure[0] = 0, blocking_structure[i] - blocking_structure[i-1] = blocking[i-1], i=0 ,.., par
 
-vec current_location; // the current location of the algorithm. Can be used in template.hpp if needed or passed through AMCMC() function
+vec current_location; // the current location of the chain
 
 string working_directory; // write/read directory. You can set the directory using set_working_direcoty(directory) function described below
 
@@ -41,7 +41,7 @@ typedef Rcpp::Nullable<Rcpp::Function> nullable_func;
 // variable bearing information about algorithm aprameters
 struct param{
     param() : save(0), burn_in(1), logdensity(0), full_cond(0), gibbs_sampling(0),
-              estimate_spectral_gap(1), beta(0), frequency_ratio(10) {}
+              estimate_spectral_gap(1), beta(0), frequency_proposal_update(10) {}
     double *p; //probability weigths for the RSGS algorithm
     bool adapt_proposals;//enable/disable adaptation of proposal varianes in the Metropolis part of the algorithm
     bool adapt_weights;//enable/disable adaptation of sampling weights
@@ -59,12 +59,15 @@ struct param{
     bool ignore_gibbs_sampling; //0 - ignore gibbs_sampling parameter
     uvec blocking_structure; // vector describing blocking structure for the algorithm. The same as blocking_structure
     double beta; //parameter beta>=0 from the AIRMCMC paper that corresponds to the diminishing adaptation rate
-    unsigned int frequency_ratio;//relative frequency of the proposal variances adaptations. By default, frequency_ratio  = 10, meaning the proposals are updated 10 times more frequently than the weights.
+    unsigned int frequency_proposal_update;//relative frequency of the proposal variances adaptations. By default, frequency_ratio  = 10, meaning the proposals are updated 10 times more frequently than the weights.
     double current_log_density;//value of  log-density at the current state of the chain
     double proposal_log_density;//value of  log-density at the Metropolis proposal
-    bool reset_log_density; //whether to recompute current_log_density
-    bool perturb_covariance; // perturb covarince estimation by adding 1/lowerb * I
-    double stabilizing_weight;
+    bool reset_log_density; // whether to recompute current_log_density
+    bool perturb_covariance; // perturb covarince estimation by adding S = S + perturb_coeff * I)
+    double perturb_coeff; // perturbation coefficient used by `perturb_covariance`
+    double stabilizing_weight; // used to generate stabilise the proposal:
+           // proposal = stabilizing_weight * N(current_state, stabilizing_coeff^2) + (1 - stabilising_weight) * adaptive_proposal
+    double stabilizing_coeff; // used by for generating a proposal, see `stabilizing_weight`
     
     void print_param ();//print values of a param variable. Should be used for developing/debugging purposes only
 };
