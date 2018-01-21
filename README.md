@@ -123,4 +123,4 @@ double gaussian::logdensity(vec theta)
 Precision matrix `Q` should be specified in the constructor. 
 
 
-For various examples follow [this](../master/exampes) link.
+For various examples follow [this](/examples) link.
