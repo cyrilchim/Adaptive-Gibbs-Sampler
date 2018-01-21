@@ -94,7 +94,6 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   int i, j, sz;
   double s;
   
- 
   param alg_param;// algorithm parameters
 
   // switch `c_density_flag` to 0 if R_density is defined
@@ -454,8 +453,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   mat L_1_tmp(dim, dim);//copy of the matrix L from the algorithm
   field<mat> S_cond_tmp; //copy of S_cond
   S_cond_tmp = S_cond;
-  
-  
+ 
   vec scaling_tmp(par);// copy of w, p, scaling
   param alg_param_tmp;//copy of alg_param
   
@@ -469,9 +467,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   checkUserInterrupt(); //check if interruption was called to terminate R session
   
   start_new = start;
-  
 
-  
   for(i = 0; i<dim; i++) 
   {
     sz = tr_aux[i].size();
@@ -530,7 +526,6 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
     {
       print_bar(bar_width, start, N); 
     }
-      
 
     if(alg_param.adapt_weights == 1)
       {
@@ -546,7 +541,6 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
           }
         
       }
-    
 
       if(alg_param.save == 1)
       {
@@ -556,8 +550,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
           (tr_weights)[i].push_back(alg_param.p[i]);
         }
       }
-      
-    
+ 
     //set tr_aux_tmp to be the samples generated during the last call of sample_batch
     for(i = 0; i<dim; i++) 
     {
@@ -570,27 +563,19 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
 
       }
     }
-    
-    
+
    start_new = start;
    L_1 = L_1_tmp;
    S_cond = S_cond_tmp;
 
-   scaling_tmp = scaling;
-   
-   
+   scaling_tmp = scaling; 
    alg_param_tmp = alg_param;
-   
-
-   
    
    //AIRMCMC step
    alg_param.batch_length = max(int(batch_length * floor(pow(double(count), alg_param.beta))), 1);
    
    //check that the number of samples will not exceed N
-   alg_param.batch_length = min(alg_param.batch_length, N - start);
-   
-   
+   alg_param.batch_length = min(alg_param.batch_length, N - start); 
 }
 
 // END OF THE ADAPTIVE MCMC ALGORITHM
@@ -601,9 +586,7 @@ Rcout.flush();
 //SAVE THE OUTPUT TO working_directory 
 
  if(alg_param.save==1)
-{
-  
-  
+{ 
   vector<double>::iterator it; // Iterator for tr[i]
   //write a trace of the chain to a file
   ofstream trace;
@@ -706,7 +689,6 @@ if(alg_param.adapt_weights==1||alg_param.estimate_spectral_gap==1)
  
 }
 
-
 // END OF `AMCMC` FUNCTION
 
 //****************************************************************************//
@@ -733,15 +715,12 @@ String get_working_directory()
 /*** R
 set.seed(1)
 
-
-
 trace_coord<-function(i)
 {
   work_dir = get_working_directory()
   v = read.table(paste(work_dir,"trace_of_coordinate_",i, ".txt",sep=""))
   return(v[,1])
 }
-
 
 trace_weights<-function()
 {
@@ -770,7 +749,6 @@ estimated_covariance<-function()
   S = read.table(paste(work_dir,"estimated_covariance",".csv",sep=""),sep = ",")
   return(as.matrix(S))
 }
-
 
 # Pointer implementation for R.
 # Allows passing and changing additional parameters for R-defined target densities 
