@@ -59,7 +59,7 @@ Rcpp::sourceCpp("~/Downloads/Adaptive-Gibbs-Sampler/Adaptive_Gibbs.cpp", cacheDi
 
 ## Using the library
 
-After loading.compiling the library:
+After compiling the library:
 1. First, set up a folder where all the output will be stored using `set_working_directory(path)`, where `path` is the desired folder, say 
 ```R
 set_working_directory("Users/Admin/AdaptiveGibbs/simulation_results/")
@@ -101,7 +101,7 @@ S
 ### How to write custom densities
 
 Detailed guide on writing user-defined densities is described in [write_custom_density.md](../master/man/write_custom_density.md).  
-One could provide an R-defined density, say,
+In short, one could provide an R-defined density, say,
 ```R
 example_logdensity<-function(x)
 { 
@@ -113,11 +113,14 @@ and call
 AMCMC(R_density = example_logdensity, logdensity = 1, dim = dim, N = N)
 ```			
 
-However, a much faster algorithm is achieved if a C++ density is supplied. A template file is provided in [template.hpp](../master/examples/template.hpp). You have to specify at least one function of the template class, say, log-density function:
+However, a much faster performance is achieved if a C++ density is supplied. A template file is provided in [template.hpp](../master/examples/template.hpp). You have to specify at least one function of the template class, say, log-density function:
 ```C++
 double gaussian::logdensity(vec theta)
 {
   return -1./2*dot(theta.t()*Q,theta);
 }
 ```
-Precision matrix `Q` should be specified in the constructor. It could be read from a file. Various examples can be found [here](../master/exampes) for 
+Precision matrix `Q` should be specified in the constructor. 
+
+
+For various examples follow [this](../master/exampes) link.
