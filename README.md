@@ -2,7 +2,7 @@
 Implementation of the Adaptive Gibbs and Adaptive Metropolis within Adaptive Gibbs Samplers.
 
 ## Description
-The package provides a set of functions to run Adaptive Random Scan Gibbs (ARSG) and  Adaptive Metropolis-within-Gibbs (AMwG) algorithms for a user-defined target distribution. The adaptive algorithms are defined in the ARSG paper. The adaptations tune the sampling weights of the algorithms, and also the variances of the proposals in the AMwG algorithm.  The algorithms are implemented in C++ providing R interface. While the user can define the target density in Rm it is strongly recommended to use a C++ template provided with the package in "template.hpp".  Gibbs Sampling is implemented only for C++ defined densities, where the user has to explicitly define a function that samples from full conditionals. The main function AMCMC(...) produces a trace of the chain which  is saved as a set of text files in a pre-specified  folder. Please refer to appendix.txt for details for additional functions provided by the package. 
+The package provides a set of functions to run the Adaptive Random Scan Gibbs (ARSG) and  Adaptive Metropolis-within-Gibbs (AMwG) algorithms for a user-defined target distribution. The adaptive algorithms are defined in the ARSG paper. The adaptations tune the sampling weights of the algorithms, and also the variances of the proposals in the AMwG algorithm.  The algorithms are implemented in C++ providing R interface. While the user can define the target density in R, the performance of the algorithm is much better if the density is described in C++ using the [template](../master/examples/template.hpp) provided with the package in.  Gibbs Sampling is implemented only for C++ defined densities, where the user has to explicitly define a function that samples from full conditionals. The main function AMCMC(...) produces a trace of the chain which  is saved as a set of text files in a pre-specified  folder. Please refer to appendix.txt for details for additional functions provided by the package. 
 
 This package was tested on OS X 10.10 and Ubuntu 16.04
 
@@ -33,9 +33,8 @@ Mac Users:
 
 Ubuntu Users:
 1. Make sure the last version of R is installed.
-2. Make sure you have installed gcc:
-
-	sudo apt-get install gcc
+2. Make sure you have installed gcc: <br/>
+	`sudo apt-get install gcc`
 
 ### Compile Adaptive_Gibbs.cpp
 
@@ -64,7 +63,7 @@ After compiling the library:
 ```R
 set_working_directory("Users/Admin/AdaptiveGibbs/simulation_results/")
 ```
-Notice, that you need to indicate the precise path to the directory, NOT "~/AdaptiveGibbs/simulation_results". Also, notice "/" at the end of the pass.
+Notice "/" at the end of the pass.
 
 2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/man/AMCMC_info.md), [AMCMC_appendix.md](../master/man/AMCMC_appendix.md),  and [tutorials](../master/man/tutorials) to learn how to use `AMCMC(...)` function. 
 
@@ -80,11 +79,11 @@ get_covariance()
 # set random seed
 set.seed(42)
 ```
-In order to sample from the distribution we need to provide at least a density function. The target distribution is described in [gaussian_target.hpp](../master/examples/gaussian_target.hpp). Sampling can be performed usinf
+In order to sample from the distribution described in C++ language, at least its [reference name](density_list.hpp) should be provided. The gaussian target distribution is described in [gaussian_target.hpp](../master/examples/gaussian_target.hpp) file. Sampling can be performed using
 ```C++
 adaptive_chain<-AMCMC(distribution_type = "gaussian", logdensity = 1, dim = dim, N = N)
 ```
-The function calls the coordinate-wise Adaptive Metropolis within Adaptive Gibbs Sampler for `gaussian` distribution. `logdensity` specifies that the log-density of the target distribution is used for Metropolis acceptance-rejection step. The output of the chain is written to the prespecified directory (use `get_working_directory()` to print the directory on screen). `adaptive_chain` stores the value of estimated inverse pseudo-spectral gap and the optimal sampling selection probabilities. 
+The function calls the coordinate-wise Adaptive Metropolis within Adaptive Gibbs Sampler for [gaussian](../master/examples/gaussian_target.hpp) distribution. `logdensity` specifies that the log-density of the target distribution is used for Metropolis acceptance-rejection step. The output of the chain is written to the prespecified directory (use `get_working_directory()` to print the directory on screen). `adaptive_chain` stores the value of estimated inverse pseudo-spectral gap and the optimal sampling selection probabilities. 
 
 Use `trace_coord(i)` to access the trace of the coordinate `i`. For example, in order to estimate the covariance matrix, one could use the following code
 ```R
