@@ -25,7 +25,7 @@ The following global variables are defined in [Adaptive_Gibbs.hpp](../include/Ad
 
   - `vec current_location` - the current location of the chain;
 
-  - `string working_directory` - write/read directory, where the input of the chain is stored. You can set the directory using `set_working_direcoty(directory)` function described in [AMCMC_appendix.md](../master/man/AMCMC_appendix.md)
+  - `string working_directory` - write/read directory, where the input of the chain is stored. You can set the directory using `set_working_direcoty(directory)` function described in [AMCMC_appendix.md](../man/AMCMC_appendix.md)
 
   - `int err_type` - error variable to be used in the constructor of inherited classes of distribution_class. See gaussian_target.hpp for an example of use.  Non-zero value exits the program and throws the corepsonding error `err_name`;
 
@@ -33,7 +33,7 @@ The following global variables are defined in [Adaptive_Gibbs.hpp](../include/Ad
 
 ## C++ target density
 
-The target density is defined as an inherited class of distribution_class. The main functions which may or may not be specified depending on the parameters of [AMCMC(...)](../master/AMCMC_info.md) are:
+The target density is defined as an inherited class of distribution_class. The main functions which may or may not be specified depending on the parameters of [AMCMC(...)](../man/AMCMC_info.md) are:
 
   - `double density(vec theta)`  - target density computed at `theta`;
 
@@ -50,7 +50,7 @@ Note, that the densities should be specified up to a normalising constant. At le
 
 ### Example: gaussian target
 
-As an example we specify all the functions of the `distribution_class` for the multivariate gaussian distribution. It is strongly recommended to read `gaussian_target.hpp` file in order to be able to write your own target density. 
+As an example we specify all the functions of the `distribution_class` for the multivariate gaussian distribution. It is strongly recommended to read [gaussian_target.hpp](../examples/gaussian_target.hpp) file in order to be able to write your own target density. 
 
 Notice the flexibility of the classes. The user is free to specify constructor `gaussian()` and `~destructor()` to list a set of operations done before and after running the sampling algorithms. For example, a set of additional parameters is introduced in the body of the inherited class: 
 
