@@ -10,7 +10,7 @@ using namespace Rcpp;
 using namespace arma;
 
 
-///reweight probability weights for Metropolis update
+//reweight probability weights for Metropolis update
 void reweight_p(param* alg_param)
 {
     double s = 0;
@@ -29,10 +29,7 @@ void reweight_p(param* alg_param)
     for(i = 0; i<par; i++)
     {
         alg_param->p[i] = alg_param->p[i] / s;
-    }   
+    }
 }
-
-
-
 
 #endif /* reweight_hpp */

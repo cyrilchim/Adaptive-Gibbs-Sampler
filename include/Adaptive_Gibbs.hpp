@@ -13,23 +13,23 @@ using namespace std;
 
 // GLOBAL VARIABLES
 
-int dim; // dimensionality of the target distribution 
-int par; // number of parameters/blocks to update by the Gibbs/MwG algorithms.
+extern int dim; // dimensionality of the target distribution
+extern int par; // number of parameters/blocks to update by the Gibbs/MwG algorithms.
          // If no blocking is used, par = d
-int burn_in; // number of burn-in samples
-double lowerb;// lower bound \epsilon from the ARSG algorithm. By defualt it is set to be 0.1/par^2
-double am; // sequence a_m from the ARSG algorithm
-double m_iter; // index m of the sequence a_m
+extern int burn_in; // number of burn-in samples
+extern double lowerb;// lower bound \epsilon from the ARSG algorithm. By defualt it is set to be 0.1/par^2
+extern double am; // sequence a_m from the ARSG algorithm
+extern double m_iter; // index m of the sequence a_m
 
-uvec blocking_structure; // par+1 dimensional vector that allows easy access to the elements of blocks for the blocking parameter of AMCMC(...) function.  Defined as blocking_structure[0] = 0, blocking_structure[i] - blocking_structure[i-1] = blocking[i-1], i=0 ,.., par
+extern uvec blocking_structure; // par+1 dimensional vector that allows easy access to the elements of blocks for the blocking parameter of AMCMC(...) function.  Defined as blocking_structure[0] = 0, blocking_structure[i] - blocking_structure[i-1] = blocking[i-1], i=0 ,.., par
 
-vec current_location; // the current location of the chain
+extern vec current_location; // the current location of the chain
 
-string working_directory; // write/read directory. You can set the directory using set_working_direcoty(directory) function described below
+extern string working_directory; // write/read directory. You can set the directory using set_working_direcoty(directory) function described below
 
 
-int err_type; // error variable to be used in the constructor of inherited classes of distribution_class. See gaussian_target.hpp for an example of use.  Non-zero value halts the program 
-string err_name; // error reference name
+extern int err_type; // error variable to be used in the constructor of inherited classes of distribution_class. See gaussian_target.hpp for an example of use.  Non-zero value halts the program
+extern string err_name; // error reference name
 
 
 

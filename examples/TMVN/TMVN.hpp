@@ -3,7 +3,7 @@
 #define ARMA_DONT_PRINT_ERRORS
 // [[Rcpp::depends(RcppArmadillo)]]
 
-#include "includes/Adaptive_Gibbs.hpp"
+#include "include/Adaptive_Gibbs.hpp"
 #include "truncated_normal.hpp"
 
 

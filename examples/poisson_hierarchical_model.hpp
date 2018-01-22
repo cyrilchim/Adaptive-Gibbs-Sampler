@@ -2,7 +2,7 @@
 #define poisson_hierarchical_model_hpp
 #define ARMA_DONT_PRINT_ERRORS
 // [[Rcpp::depends(RcppArmadillo)]]
-#include "includes/Adaptive_Gibbs.hpp"
+#include "include/Adaptive_Gibbs.hpp"
 
 using namespace Rcpp;
 using namespace arma;

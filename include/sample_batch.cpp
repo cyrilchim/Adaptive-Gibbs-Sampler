@@ -1,11 +1,6 @@
-#ifndef sample_batch_hpp
-#define sample_batch_hpp
-// [[Rcpp::depends(RcppArmadillo)]]
-
-
-#include <RcppArmadillo.h>
-#include "Adaptive_Gibbs.hpp"
+#include "sample_batch.hpp"
 #include "sample_batch/multinomial.hpp"
+
 
 using namespace Rcpp;
 using namespace arma;
@@ -301,5 +296,3 @@ void sample_batch(vec* theta, vec* scaling, mat *L_1, field<mat>* S_cond, unsign
     //update the number of sampling weights adaptations
     if(alg_param->burn_in==0){*count = *count + 1;} 
 }
-
-#endif /* sample_batch_hpp */

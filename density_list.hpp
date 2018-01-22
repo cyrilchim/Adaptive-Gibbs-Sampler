@@ -4,7 +4,8 @@
 // [[Rcpp::plugins(cpp11)]]
 #include <cstdlib>
 #include <RcppArmadillo.h>
-#include "includes/Adaptive_Gibbs.hpp"
+
+#include "include/Adaptive_Gibbs.hpp"
 #include "examples/gaussian_target.hpp"
 #include "examples/template.hpp"
 #include "examples/TMVN/TMVN.hpp"

@@ -4,7 +4,7 @@
 
 
 #include <RcppArmadillo.h>
-#include "includes/Adaptive_Gibbs.hpp"
+#include "include/Adaptive_Gibbs.hpp"
 #include "projection.hpp"
 
 using namespace Rcpp;
