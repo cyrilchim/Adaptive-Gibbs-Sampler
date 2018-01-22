@@ -1,4 +1,4 @@
-//inspired by leemes user at Stack Overflow: http://stackoverflow.com/questions/14539867/how-to-display-a-progress-indicator-in-pure-c-c-cout-printf
+// modified code by leemes user at Stack Overflow: http://stackoverflow.com/questions/14539867/how-to-display-a-progress-indicator-in-pure-c-c-cout-printf
 
 #ifndef progress_bar_hpp
 #define progress_bar_hpp
@@ -16,12 +16,12 @@ using namespace arma;
 using namespace std;
 
 
-int bar_width = 70; //width of the progress bar
+int bar_width = 70; // width of the progress bar
 
-void print_bar(int bar_width, int start, int N)//display progress bar
+void print_bar(int bar_width, int start, int N)// display progress bar
 {
     int i;
-    double progress_bar = double(start)/double(N); //update progress bar
+    double progress_bar = double(start)/double(N); // update progress bar
     Rcout << "[";
     int pos = int(bar_width * progress_bar);
     
