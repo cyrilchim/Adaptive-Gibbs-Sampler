@@ -7,7 +7,7 @@ Armadillo (RcppArmadillo) library was extensively used to write the package: htt
 
 ### Global variables
 
-The following global variables are defined in [Adaptive_Gibbs.hpp](../master/includes/Adaptive_Gibbs.hpp) and are available for users needs:
+The following global variables are defined in [Adaptive_Gibbs.hpp](../includes/Adaptive_Gibbs.hpp) and are available for users needs:
 
   - `int dim` - dimensionality of the target distribution;
 
@@ -39,11 +39,11 @@ The target density is defined as an inherited class of distribution_class. The m
 
   - `double logdensity(vec theta)` - logarithm of the target density at `theta`;
   
-  - `double full_cond(vec theta, int prob_ind)` - full conditional of the block with index `prob_ind`;
+  - `double full_cond(vec theta, int block_ind)` - full conditional of the block with index `block_ind`;
   
-  - `double logfull_cond(vec theta, int prob_ind)`  - logarithm of the full conditional of the block wih index `prob_ind`;
+  - `double logfull_cond(vec theta, int block_ind)`  - logarithm of the full conditional of the block wih index `block_ind`;
  
-  - `vec sample_full_cond(vec theta, int gp)` - sample block `prob_ind` from its full conditional distribution
+  - `vec sample_full_cond(vec theta, int block_ind)` - sample block `block_ind` from its full conditional distribution
 
 Note, that the densities should be specified up to a normalising constant. At least one of the functions needs to be specified in order to run the algorithm
 
@@ -78,9 +78,9 @@ double gaussian::density(vec theta)
 
 1. To access the elements of a block gp , one can refer to the corresponding subvector of theta through blocking_structure parameter:
 ```C++
-theta.subvec(blocking_structure(gp), blocking_structure(gp+1)-1)
+theta.subvec(blocking_structure(block_ind), blocking_structure(block_ind+1)-1)
 ```
-2. In order to specify sampling from the full conditionals function `sample_full_cond(vec theta, int prob_ind)`, R/Rcpp random number generator should be used. For example, to sample a 100 standard normal random variables type `rnorm(100)`, which is of NumericVector type. Use `runif(100)` to sample the uniform random variables.
+2. In order to specify sampling from the full conditionals function `sample_full_cond(vec theta, int block_ind)`, R/Rcpp random number generator should be used. For example, to sample a 100 standard normal random variables type `rnorm(100)`, which is of NumericVector type. Use `runif(100)` to sample the uniform random variables.
 
 3. The user is expected to be able to mimic gaussian_target.hpp file and specify the necessary functions in template.hpp.
 
