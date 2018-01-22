@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <RcppArmadillo.h>
 
-
 #include <fstream>
 
 using namespace Rcpp;
@@ -35,8 +34,6 @@ string err_name; // error reference name
 
 
 typedef Rcpp::Nullable<Rcpp::Function> nullable_func;
-
-
 
 // variable bearing information about algorithm aprameters
 struct param{
@@ -71,8 +68,6 @@ struct param{
     
     void print_param ();//print values of a param variable. Should be used for developing/debugging purposes only
 };
-
-
 
 //CLASS FOR THE TARGET DISTRIBUTION
 class distribution_class{
