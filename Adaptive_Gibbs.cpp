@@ -51,7 +51,7 @@ void parallel_step(mat *S, vec* mu, int* start_old, int* start_new, vector<vecto
 //Adaptive MCMC agorithm exported to R
 List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_density=R_NilValue,
            double frac_burn_in = 10, int thin = 1, double batch_length = 100,
-           int frequency_proposal_update = 100,  NumericVector start_location = NA_REAL, int dims = 1,
+           int frequency_proposal_update = 100,  NumericVector start_location = NA_REAL, int dimension = 1,
            bool adapt_proposals = 1, bool adapt_weights = 1, NumericVector start_weights=NA_REAL,
            bool logdensity = 0, bool full_cond = 0,
            bool gibbs_sampling = 0, bool estimate_spectral_gap = 1, double rate_beta = 0,
@@ -85,7 +85,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
   
   burn_in = floor(frac_burn_in/100. * N);
   
-  dim = dims;
+  dim = dimension;
 
   //number of sampled points
   int start = 0, start_old = 0, start_new = 0;
