@@ -15,16 +15,15 @@
 
 #include "includes/progress_bar.hpp"
 
-// #include <RcppArmadilloExtensions/sample.h>
+// Potential speed up may be achieved with the GSL random number generator
 // #include <gsl/gsl_rng.h>
 // #include <gsl/gsl_randist.h>
+// gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
 
 using namespace tbb; //support for parallel computing
 using namespace Rcpp;
 using namespace arma;
 using namespace std;
-
-// gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
 
 distribution_class* c_density;
 
