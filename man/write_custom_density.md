@@ -7,7 +7,7 @@ Armadillo (RcppArmadillo) library was extensively used to write the package: htt
 
 ### Global variables
 
-The following global variables are defined in [Adaptive_Gibbs.hpp](../includes/Adaptive_Gibbs.hpp) and are available for users needs:
+The following global variables are defined in [Adaptive_Gibbs.hpp](../include/Adaptive_Gibbs.hpp) and are available for users needs:
 
   - `int dim` - dimensionality of the target distribution;
 
