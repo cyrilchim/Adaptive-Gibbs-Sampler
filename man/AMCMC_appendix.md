@@ -1,5 +1,5 @@
 ## Description
-This is an appendix to AMCMCinfo.txt. Here we describe additional functions that are provided with [Adaptive_Gibbs.cpp](../master/Adaptive_Gibbs.cpp): 
+This is an appendix to AMCMCinfo.txt. Here we describe additional functions that are provided with [Adaptive_Gibbs.cpp](../Adaptive_Gibbs.cpp): 
 
 ```R
 set_working_directory(String directory) 
