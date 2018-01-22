@@ -81,7 +81,7 @@ set.seed(42)
 ```
 In order to sample from the distribution described in C++ language, at least its [reference name](density_list.hpp) should be provided. The gaussian target distribution is described in [gaussian_target.hpp](../master/examples/gaussian_target.hpp) file. Sampling can be performed using
 ```C++
-adaptive_chain<-AMCMC(distribution_type = "gaussian", logdensity = 1, dim = dim, N = N)
+adaptive_chain<-AMCMC(distribution_type = "gaussian", logdensity = 1, dimension = dim, N = N)
 ```
 The function calls the coordinate-wise Adaptive Metropolis within Adaptive Gibbs Sampler for [gaussian](../master/examples/gaussian_target.hpp) distribution. `logdensity` indicates that the log-density of the target distribution is used for Metropolis acceptance-rejection step. The output of the chain is written to the prespecified directory (use `get_working_directory()` to print the directory on screen). `adaptive_chain` stores the value of estimated inverse pseudo-spectral gap and the optimal sampling selection probabilities. 
 
@@ -109,7 +109,7 @@ example_logdensity<-function(x)
 ```
 and call 
 ```R
-AMCMC(R_density = example_logdensity, logdensity = 1, dim = dim, N = N)
+AMCMC(R_density = example_logdensity, logdensity = 1, dimension = dim, N = N)
 ```			
 
 However, a much faster performance is achieved if a C++ density is supplied. A template file is provided in [template.hpp](../master/examples/template.hpp). You have to specify at least one function of the template class, say, log-density function:
