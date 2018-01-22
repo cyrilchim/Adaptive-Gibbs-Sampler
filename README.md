@@ -59,13 +59,13 @@ Rcpp::sourceCpp("~/Downloads/Adaptive-Gibbs-Sampler/Adaptive_Gibbs.cpp", cacheDi
 ## Using the library
 
 After compiling the library:
-1. First, set up a folder where all the output will be stored using `set_working_directory(path)`, where `path` is the desired folder, say 
+1. First, set up a folder where all the output will be stored using `set_working_directory(path)`, where `path` is the desired folder, say, 
 ```R
 set_working_directory("Users/Admin/AdaptiveGibbs/simulation_results/")
 ```
 Notice "/" at the end of the pass.
 
-2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/man/AMCMC_info.md), [AMCMC_appendix.md](../master/man/AMCMC_appendix.md),  and [tutorials](../master/man/tutorials) to learn how to use `AMCMC(...)` function. 
+2. Now you can use `AMCMC(...)` and related functions. Please refer to [AMCMC_info.md](../master/man/AMCMC_info.md), [AMCMC_appendix.md](../master/man/AMCMC_appendix.md),  and [tutorials](../master/tutorials) to learn how to use `AMCMC(...)` function. 
 
 ### Gaussian example
 Consider sampling from a 10-dimensional multivariate normal target distribution with a covariance matrix `S`. As an example, the user can generate a block diagonal matrix using `set_example_covariance`:
@@ -83,7 +83,7 @@ In order to sample from the distribution described in C++ language, at least its
 ```C++
 adaptive_chain<-AMCMC(distribution_type = "gaussian", logdensity = 1, dim = dim, N = N)
 ```
-The function calls the coordinate-wise Adaptive Metropolis within Adaptive Gibbs Sampler for [gaussian](../master/examples/gaussian_target.hpp) distribution. `logdensity` specifies that the log-density of the target distribution is used for Metropolis acceptance-rejection step. The output of the chain is written to the prespecified directory (use `get_working_directory()` to print the directory on screen). `adaptive_chain` stores the value of estimated inverse pseudo-spectral gap and the optimal sampling selection probabilities. 
+The function calls the coordinate-wise Adaptive Metropolis within Adaptive Gibbs Sampler for [gaussian](../master/examples/gaussian_target.hpp) distribution. `logdensity` indicates that the log-density of the target distribution is used for Metropolis acceptance-rejection step. The output of the chain is written to the prespecified directory (use `get_working_directory()` to print the directory on screen). `adaptive_chain` stores the value of estimated inverse pseudo-spectral gap and the optimal sampling selection probabilities. 
 
 Use `trace_coord(i)` to access the trace of the coordinate `i`. For example, in order to estimate the covariance matrix, one could use the following code
 ```R
