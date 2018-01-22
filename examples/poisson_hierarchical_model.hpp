@@ -28,9 +28,9 @@ public:
     double density(vec theta);    //target density at the point theta 
     double logdensity(vec theta); //logarithm of the target density
     
-    double full_cond(vec theta, int gp);  //full conditional of the block gp
-    double logfull_cond(vec theta, int gp);  //logarithm of the full conditional of the block gp
-    vec sample_full_cond(vec theta, int gp);  //sample block gp from its full conditional distributiont
+    double full_cond(vec theta, int ind);  //full conditional of the block ind
+    double logfull_cond(vec theta, int ind);  //logarithm of the full conditional of the block ind
+    vec sample_full_cond(vec theta, int ind);  //sample block ind from its full conditional distributiont
 };
 
 
@@ -138,7 +138,7 @@ double poisson_hierarchical_model::logfull_cond(vec theta, int prob_ind)
 }
 
 
-//should return a vector of the same dimension as the block gp
+//should return a vector of the same dimension as the block ind
 vec poisson_hierarchical_model::sample_full_cond(vec theta, int prob_ind)
 {
   vec res;

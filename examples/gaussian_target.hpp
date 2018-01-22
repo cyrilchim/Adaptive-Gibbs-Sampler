@@ -22,10 +22,10 @@ public:
     double density(vec theta);    //target density at the point theta
     double logdensity(vec theta); //logarithm of the target density
     
-    double full_cond(vec theta, int gp);  //full conditional of the block gp
-    double logfull_cond(vec theta, int gp);  //logarithm of the full conditional of the block gp
+    double full_cond(vec theta, int ind);  //full conditional of the block `ind`
+    double logfull_cond(vec theta, int ind);  //logarithm of the full conditional of the block `ind`
     
-    vec sample_full_cond(vec theta, int gp);   //sample block gp from its full conditional distributiont
+    vec sample_full_cond(vec theta, int ind);   //sample block `ind` from its full conditional distributiont
 };
 
 
@@ -104,49 +104,49 @@ double gaussian::logdensity(vec theta){return -1./2*dot(theta.t()*Q,theta);}
 
 
 
-double gaussian::full_cond(vec theta, int gp)
+double gaussian::full_cond(vec theta, int ind)
 {
-    vec mn(blocking_structure(gp+1) - blocking_structure(gp)), v(blocking_structure(gp+1)-blocking_structure(gp)); 
+    vec mn(blocking_structure(ind+1) - blocking_structure(ind)), v(blocking_structure(ind+1)-blocking_structure(ind)); 
     mn.zeros();
    
     for (int j = 0; j<par; j++)
     {
-      mn = mn + A_block(gp, j) * theta.subvec(blocking_structure(j), blocking_structure(j+1)-1);
+      mn = mn + A_block(ind, j) * theta.subvec(blocking_structure(j), blocking_structure(j+1)-1);
     }
 
-   v = inv_sd(gp) * (theta.subvec(blocking_structure(gp), blocking_structure(gp+1)-1) - mn);
+   v = inv_sd(ind) * (theta.subvec(blocking_structure(ind), blocking_structure(ind+1)-1) - mn);
    return exp(-1./2*dot(v,v));
 }
 
 
-double gaussian::logfull_cond(vec theta, int gp)
+double gaussian::logfull_cond(vec theta, int ind)
 {
 
-  vec mn(blocking_structure(gp+1) - blocking_structure(gp)), v(blocking_structure(gp+1)-blocking_structure(gp)); 
+  vec mn(blocking_structure(ind+1) - blocking_structure(ind)), v(blocking_structure(ind+1)-blocking_structure(ind)); 
   mn.zeros();
   
   for (int j = 0; j<par; j++)
   {
-    mn = mn + A_block(gp, j) * theta.subvec(blocking_structure(j), blocking_structure(j+1)-1);
+    mn = mn + A_block(ind, j) * theta.subvec(blocking_structure(j), blocking_structure(j+1)-1);
   }
  
-  v = inv_sd(gp) * (theta.subvec(blocking_structure(gp), blocking_structure(gp+1)-1) - mn);
+  v = inv_sd(ind) * (theta.subvec(blocking_structure(ind), blocking_structure(ind+1)-1) - mn);
   return -1./2*dot(v,v);
 }
 
 
-vec gaussian::sample_full_cond(vec theta, int gp)
+vec gaussian::sample_full_cond(vec theta, int ind)
 {
-    vec res(blocking_structure(gp+1) - blocking_structure(gp)); 
+    vec res(blocking_structure(ind+1) - blocking_structure(ind)); 
     res.zeros();
     
     for (int j = 0; j<par; j++)
     {
-        res = res + A_block(gp, j) * theta.subvec(blocking_structure(j), blocking_structure(j+1)-1);
-        //res = res + A(gp, j) * theta(gp);
+        res = res + A_block(ind, j) * theta.subvec(blocking_structure(j), blocking_structure(j+1)-1);
+        //res = res + A(ind, j) * theta(ind);
       
     }
-    res = res + sd(gp) * vec(rnorm(blocking_structure(gp+1) - blocking_structure(gp)));
+    res = res + sd(ind) * vec(rnorm(blocking_structure(ind+1) - blocking_structure(ind)));
 
     return  res;
    

@@ -27,7 +27,7 @@ if(file.exists(directory)){
   cat("",sep = "\n\n")
   # note that set_example_covariance(dim) and get_covariance() are defined in gaussian_target.hpp file
   # run an adaptive MCMC for the gaussian distribution with the covariance matrix as above using full dimensional Random Scan Gibbs Sampler
-  adaptive_chain<-AMCMC(distribution_type = "gaussian", dim = dim, N = N, gibbs_sampling = 1, display_progress = 0)
+  adaptive_chain<-AMCMC(distribution_type = "gaussian", dimension = dim, N = N, gibbs_sampling = 1, display_progress = 0)
 }else{
   print("The directory does not exist. Please set up an existing path")
 }
@@ -80,9 +80,9 @@ if(file.exists(directory)){
   print(get_covariance())
   cat("",sep = "\n\n")
   # run the adaptive MCMC. Here we start the algorithm at a point (1,..,1) with starting proposal variances of the blocks (5,5,5)
-  adaptive_chain<-AMCMC(distribution_type = "gaussian", dim = dim, N = N, full_cond = 1,
+  adaptive_chain<-AMCMC(distribution_type = "gaussian", dimension = dim, N = N, full_cond = 1,
                         blocking = c(2,4,4), gibbs_step = c(1,0,0), rate_beta = 0.5,
-                        start_scales = c(5,5,5), start_location = rep(1,10))
+                        start_scaling = c(5,5,5), start_location = rep(1,10))
 }else{  
   print("The directory does not exist. Please set up an existing path")
 }
@@ -153,7 +153,7 @@ if(file.exists(directory)){
   N <- 10000
   # run the Adaptive MwG algorithm for the R-defined log-density
   adaptive_chain<-AMCMC(R_density = example_logdensity, logdensity = 1,
-                        dim = dim, N = N,  blocking = c(1,2,2,5))
+                        dimension = dim, N = N,  blocking = c(1,2,2,5))
 }else{
   print("The directory does not exist. Please set up an existing path")
 }

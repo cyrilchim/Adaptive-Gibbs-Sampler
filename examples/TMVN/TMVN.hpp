@@ -33,9 +33,9 @@ public:
   double density(vec theta);    //target density at the point theta 
   double logdensity(vec theta); //logarithm of the target density
     
-  double full_cond(vec theta, int gp);  //full conditional of the block gp
-  double logfull_cond(vec theta, int gp);  //logarithm of the full conditional of the block gp
-  vec sample_full_cond(vec theta, int gp);  //sample block gp from its full conditional distributiont
+  double full_cond(vec theta, int ind);  //full conditional of the block ind
+  double logfull_cond(vec theta, int ind);  //logarithm of the full conditional of the block ind
+  vec sample_full_cond(vec theta, int ind);  //sample block ind from its full conditional distributiont
   double truncated_normal_ab_sample(double mu, double sigma, double a, double b);
     
 };
@@ -95,19 +95,19 @@ double tmvn::logdensity(vec theta)
   return 0;
 }
 
-double tmvn::full_cond(vec theta, int gp)
+double tmvn::full_cond(vec theta, int ind)
 {
   return 0;
 }
 
 
-double tmvn::logfull_cond(vec theta, int gp)
+double tmvn::logfull_cond(vec theta, int ind)
 {
   return 0;
 }
 
 
-vec tmvn::sample_full_cond(vec theta, int gp)
+vec tmvn::sample_full_cond(vec theta, int ind)
 {
   vec res(1);
   res.zeros();
@@ -120,19 +120,19 @@ vec tmvn::sample_full_cond(vec theta, int gp)
     
   for (int j = 0; j<dim; j++)
   {
-    s = s + A(int(gp), j) * theta(j);
+    s = s + A(int(ind), j) * theta(j);
   }
   
   // std::pair<double, double> trunc_sample;
     double trunc_sample;
   
-  var = 1.0 / sqrt(D_0(gp)); //conditional variance
+  var = 1.0 / sqrt(D_0(ind)); //conditional variance
 
   // sampling from truncated normal distribution
-  //trunc_sample = rtnorm((lower_trunc(int(gp)) - s) / var, (upper_trunc(int(gp)) - s) / var);
+  //trunc_sample = rtnorm((lower_trunc(int(ind)) - s) / var, (upper_trunc(int(ind)) - s) / var);
     seed_tr_norm++;
-    trunc_sample = truncated_normal_ab_sample(0., 1., (lower_trunc(int(gp)) - s) / var,
-                                              (upper_trunc(int(gp)) - s) / var);
+    trunc_sample = truncated_normal_ab_sample(0., 1., (lower_trunc(int(ind)) - s) / var,
+                                              (upper_trunc(int(ind)) - s) / var);
   
   //res(0) = s + var * trunc_sample.first; // extract the sampled variable
     res(0) = s + var * trunc_sample;
@@ -149,7 +149,7 @@ double tmvn::truncated_normal_ab_sample(double mu, double sigma, double a, doubl
 //
 //  Licensing:
 //
-//    This code is distributed under the GNU LGPL license.
+//    This code is distributed under the GNU LindL license.
 //
 //  Modified:
 //

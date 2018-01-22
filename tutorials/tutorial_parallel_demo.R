@@ -34,7 +34,7 @@ if(file.exists(directory)){
   cat("",sep = "\n\n")
   # note that set_example_covariance(dim) and get_covariance() are defined in gaussian_target.hpp file
   # run an adaptive MCMC for the gaussian distribution with the covariance matrix as above using full dimensional Random Scan Gibbs Sampler
-  adaptive_chain<-AMCMC(distribution_type = "gaussian", dim = dim, N = N, gibbs_sampling = 1, parallel_adaptation = 1)
+  adaptive_chain<-AMCMC(distribution_type = "gaussian", dimension = dim, N = N, gibbs_sampling = 1, parallel_adaptation = 1)
 }else{
   print("The directory does not exist. Please set up an existing path")
 }
@@ -83,12 +83,12 @@ N <- 10000
 set_example_covariance(dim)
 
 # Time spent without adaptations
-system.time(AMCMC(distribution_type = "gaussian", dim = dim, N = N, full_cond = 1,  blocking = c(rep(1,100), rep(5,80)), save = 0, adapt_proposals = 0, adapt_weights = 0, estimate_spectral_gap = 0, parallel_adaptation = 0))
+system.time(AMCMC(distribution_type = "gaussian", dimension = dim, N = N, full_cond = 1,  blocking = c(rep(1,100), rep(5,80)), save = 0, adapt_proposals = 0, adapt_weights = 0, estimate_spectral_gap = 0, parallel_adaptation = 0))
 
 # Time spent without parallelisation
-system.time(AMCMC(distribution_type = "gaussian", dim = dim, N = N, full_cond = 1, blocking = c(rep(1,100), rep(5,80)), save = 0, parallel_adaptation = 0))
+system.time(AMCMC(distribution_type = "gaussian", dimension = dim, N = N, full_cond = 1, blocking = c(rep(1,100), rep(5,80)), save = 0, parallel_adaptation = 0))
 
 # Time spent with parallelisation
-system.time(AMCMC(distribution_type = "gaussian", dim = dim, N = N, full_cond = 1, blocking = c(rep(1,100), rep(5,80)), save = 0, parallel_adaptation = 1))
+system.time(AMCMC(distribution_type = "gaussian", dimension = dim, N = N, full_cond = 1, blocking = c(rep(1,100), rep(5,80)), save = 0, parallel_adaptation = 1))
 
 
