@@ -1,5 +1,5 @@
 # Adaptive-Gibbs-Sampler
-Implementation of the Adaptive Gibbs and Adaptive Metropolis within Adaptive Gibbs Samplers.
+Implementation of the Adaptive Gibbs and Adaptive Metropolis within Adaptive Gibbs Samplers described in [C., Latuszynski, and Roberts (2018)](https://arxiv.org/abs/1801.09299).
 
 ## Description
 The package provides a set of functions to run the Adaptive Random Scan Gibbs (ARSG) and  Adaptive Metropolis-within-Gibbs (AMwG) algorithms for a user-defined target distribution. The adaptive algorithms are defined in the ARSG paper. The adaptations tune the sampling weights of the algorithms, and also the variances of the proposals in the AMwG algorithm.  The algorithms are implemented in C++ providing R interface. While the user can define the target density in R, the performance of the algorithm is much better if the density is described in C++ using the provided [template](../master/examples/template.hpp).  Gibbs Sampling is implemented only for C++ defined densities, where the user has to explicitly define a function that samples from full conditionals. The main function AMCMC(...) produces a trace of the chain which  is saved as a set of text files in a pre-specified  folder. Please refer to appendix.txt for details for additional functions provided by the package. 
