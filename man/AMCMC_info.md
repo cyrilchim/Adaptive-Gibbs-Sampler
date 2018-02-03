@@ -57,7 +57,7 @@ List AMCMC(string distribution_type = "gaussian", int N = 1000, nullable_func R_
 
   - `estimate_spectral_gap` - enable/disable estimation of the pseudo-spectral gap defined in the ARSG paper;
 
-  - `rate_beta` - non-negative constant beta defined in Theorem 1 of the AIRMCMC paper; after every sampling weights adaptation, updates batch_length  =  batch_length * count^ rate_beta, where count is the sampling weights adaptation number;
+  - `rate_beta` - non-negative constant beta defined in Theorem 1 of [C., Latuszynski, and Roberts (2018a)](https://arxiv.org/abs/1801.09309); after every sampling weights adaptation, updates batch_length  =  batch_length * count^ rate_beta, where count is the sampling weights adaptation number;
 
   - `blocking` - blocking structure for the algorithm. For example, if dim  = 10 and blocking  = c(5 ,2, 3), coordinates are grouped into three blocks: first 5 coordinates are combined into a first block, coordinates 6 and 7 into a second block, and 8, 9, and 10 into a third block. The algorithm then updates all coordinates within a block simultaneously;
 
